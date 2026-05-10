@@ -511,6 +511,8 @@ const productWhatsappLink = (productName) =>
 
 const getProductByCode = (code) => products.find((product) => product.code === code);
 
+const getOptimizedProductImage = (product) => `assets/optimized/productos/${product.code}.webp`;
+
 const parsePrice = (price) => Number(price.replace(/[^\d.]/g, "")) || 0;
 
 const formatLempiras = (value) =>
@@ -619,6 +621,7 @@ function openPromoPopup() {
   promoPopup.classList.add("flex");
   markPromoShown();
   syncBodyScrollLock();
+  closePromoPopup?.focus();
 }
 
 function closePromo() {
@@ -685,6 +688,7 @@ function getFilteredProducts() {
 function renderProductCard(product, options = {}) {
   const quantity = getCartQuantity(product.code);
   const isFeatured = FEATURED_CODES.includes(product.code);
+  const imageSrc = getOptimizedProductImage(product);
   const imageLoading = options.eager ? "eager" : "lazy";
   const imagePriority = options.eager ? ' fetchpriority="high"' : "";
 
@@ -693,12 +697,19 @@ function renderProductCard(product, options = {}) {
       <button
         class="product-media"
         type="button"
-        data-image="${escapeHtml(product.image)}"
+        data-image="${escapeHtml(imageSrc)}"
+        data-fallback-image="${escapeHtml(product.image)}"
         data-title="${escapeHtml(product.name)}"
         aria-label="Ampliar imagen de ${escapeHtml(product.name)}"
       >
         ${isFeatured ? '<span class="product-badge">Destacado</span>' : ""}
-        <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="${imageLoading}" decoding="async"${imagePriority} />
+        <img
+          src="${escapeHtml(imageSrc)}"
+          data-fallback-image="${escapeHtml(product.image)}"
+          alt="${escapeHtml(product.name)}"
+          loading="${imageLoading}"
+          decoding="async"${imagePriority}
+        />
       </button>
       <div class="product-info">
         <div class="product-meta">
@@ -713,7 +724,13 @@ function renderProductCard(product, options = {}) {
           <span class="wholesale">Mayoreo ${escapeHtml(product.wholesale)}</span>
         </div>
         <div class="product-actions">
-          <button class="cart-product-button ${quantity ? "is-added" : ""}" type="button" data-cart-add="${escapeHtml(product.code)}">
+          <button
+            class="cart-product-button ${quantity ? "is-added" : ""}"
+            type="button"
+            data-cart-add="${escapeHtml(product.code)}"
+            aria-label="Agregar ${escapeHtml(product.name)} al pedido"
+            aria-pressed="${quantity ? "true" : "false"}"
+          >
             ${quantity ? `Agregado (${quantity})` : "Agregar al pedido"}
           </button>
           <a class="product-whatsapp" href="${productWhatsappLink(product.name)}" target="_blank" rel="noreferrer">
@@ -762,11 +779,12 @@ function resetFilters() {
   renderProducts();
 }
 
-function openImageModal({ image, title }) {
+function openImageModal({ image, title, fallbackImage }) {
   if (!imageModal || !modalImage || !modalTitle || !modalWhatsapp || !closeImageModal) return;
 
   modalImage.src = image;
   modalImage.alt = title;
+  modalImage.dataset.fallbackImage = fallbackImage || "";
   modalTitle.textContent = title;
   modalWhatsapp.href = productWhatsappLink(title);
   imageModal.classList.remove("hidden");
@@ -901,6 +919,7 @@ function openCartDrawer() {
   cartDrawer.classList.remove("hidden");
   cartDrawer.classList.add("flex");
   syncBodyScrollLock();
+  closeCart?.focus();
 }
 
 function closeCartDrawer() {
@@ -923,6 +942,7 @@ function handleProductClick(event) {
 
   openImageModal({
     image: mediaButton.dataset.image,
+    fallbackImage: mediaButton.dataset.fallbackImage,
     title: mediaButton.dataset.title
   });
 }
@@ -1032,6 +1052,18 @@ document.addEventListener("keydown", (event) => {
     closeCartDrawer();
   }
 });
+
+document.addEventListener(
+  "error",
+  (event) => {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement) || !image.dataset.fallbackImage) return;
+
+    image.src = image.dataset.fallbackImage;
+    image.removeAttribute("data-fallback-image");
+  },
+  true
+);
 
 if (clearFilters) {
   clearFilters.addEventListener("click", resetFilters);
