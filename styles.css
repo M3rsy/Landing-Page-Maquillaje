@@ -291,24 +291,32 @@ textarea:focus-visible {
 
 .offer-countdown {
   display: grid;
+  align-content: center;
+  gap: 0.18rem;
   min-width: 120px;
-  padding: 0.6rem 0.75rem;
+  min-height: 70px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(255, 207, 116, 0.38);
   border-radius: 8px;
-  background: #fff;
+  background: linear-gradient(180deg, #fff, #fff4f7);
   color: var(--rose-dark);
   text-align: center;
+  box-shadow: 0 10px 22px rgba(42, 21, 27, 0.16);
 }
 
 .offer-countdown span {
-  font-size: 1.2rem;
+  color: var(--rose-dark);
+  font-size: 1.35rem;
   font-weight: 900;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .offer-countdown small {
-  color: var(--muted);
-  font-size: 0.72rem;
+  color: var(--gold);
+  font-size: 0.68rem;
   font-weight: 800;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
