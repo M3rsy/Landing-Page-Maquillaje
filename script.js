@@ -1,6 +1,8 @@
 // Numero base del negocio: 88045356. WhatsApp necesita codigo de pais para abrir correctamente.
 const WHATSAPP_NUMBER = "50488045356";
 const GENERAL_MESSAGE = "Hola, quiero más información sobre el catálogo de maquillaje JOYERIAJRV.";
+const OFFER_MESSAGE = "Hola, quiero reclamar el 10% de descuento en mi primera compra del catalogo JOYERIAJRV.";
+const WHOLESALE_MESSAGE = "Hola, quiero abrir codigo mayorista. Tengo L 2,000 en producto variado.";
 
 // Edita este array para agregar productos, cambiar precios o reemplazar imagenes.
 const products = [
@@ -458,6 +460,9 @@ const modalImage = document.querySelector("#modalImage");
 const modalTitle = document.querySelector("#modalTitle");
 const modalWhatsapp = document.querySelector("#modalWhatsapp");
 const closeImageModal = document.querySelector("#closeImageModal");
+const promoPopup = document.querySelector("#promoPopup");
+const closePromoPopup = document.querySelector("#closePromoPopup");
+const countdownDisplays = document.querySelectorAll("[data-countdown]");
 
 const normalize = (value) =>
   value
@@ -490,6 +495,63 @@ function setGeneralWhatsappLinks() {
   document.querySelectorAll("[data-whatsapp-general]").forEach((link) => {
     link.href = whatsappLink(GENERAL_MESSAGE);
   });
+
+  document.querySelectorAll("[data-whatsapp-offer]").forEach((link) => {
+    link.href = whatsappLink(OFFER_MESSAGE);
+  });
+
+  document.querySelectorAll("[data-whatsapp-wholesale]").forEach((link) => {
+    link.href = whatsappLink(WHOLESALE_MESSAGE);
+  });
+}
+
+function getOfferDeadline() {
+  const deadline = new Date();
+  deadline.setHours(23, 59, 59, 999);
+  return deadline;
+}
+
+function formatCountdown(milliseconds) {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return [hours, minutes, seconds].map((value) => value.toString().padStart(2, "0")).join(":");
+}
+
+function updateCountdown() {
+  const remaining = getOfferDeadline().getTime() - Date.now();
+  const formatted = formatCountdown(remaining);
+
+  countdownDisplays.forEach((display) => {
+    display.textContent = formatted;
+  });
+}
+
+function startCountdown() {
+  if (!countdownDisplays.length) return;
+
+  updateCountdown();
+  window.setInterval(updateCountdown, 1000);
+}
+
+function openPromoPopup() {
+  if (!promoPopup) return;
+
+  promoPopup.classList.remove("hidden");
+  promoPopup.classList.add("flex");
+  document.body.style.overflow = "hidden";
+}
+
+function closePromo() {
+  if (!promoPopup) return;
+
+  promoPopup.classList.add("hidden");
+  promoPopup.classList.remove("flex");
+  if (!imageModal || imageModal.classList.contains("hidden")) {
+    document.body.style.overflow = "";
+  }
 }
 
 function buildFilters() {
@@ -582,6 +644,8 @@ function resetFilters() {
 }
 
 function openImageModal({ image, title }) {
+  if (!imageModal || !modalImage || !modalTitle || !modalWhatsapp || !closeImageModal) return;
+
   modalImage.src = image;
   modalImage.alt = title;
   modalTitle.textContent = title;
@@ -593,10 +657,14 @@ function openImageModal({ image, title }) {
 }
 
 function closeModal() {
+  if (!imageModal || !modalImage) return;
+
   imageModal.classList.add("hidden");
   imageModal.classList.remove("flex");
   modalImage.src = "";
-  document.body.style.overflow = "";
+  if (!promoPopup || promoPopup.classList.contains("hidden")) {
+    document.body.style.overflow = "";
+  }
 }
 
 searchInput.addEventListener("input", (event) => {
@@ -626,23 +694,49 @@ productGrid.addEventListener("click", (event) => {
   });
 });
 
-closeImageModal.addEventListener("click", closeModal);
+if (closeImageModal) {
+  closeImageModal.addEventListener("click", closeModal);
+}
 
-imageModal.addEventListener("click", (event) => {
-  if (event.target === imageModal) {
-    closeModal();
-  }
-});
+if (imageModal) {
+  imageModal.addEventListener("click", (event) => {
+    if (event.target === imageModal) {
+      closeModal();
+    }
+  });
+}
+
+if (closePromoPopup) {
+  closePromoPopup.addEventListener("click", closePromo);
+}
+
+if (promoPopup) {
+  promoPopup.addEventListener("click", (event) => {
+    if (event.target === promoPopup) {
+      closePromo();
+    }
+  });
+}
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !imageModal.classList.contains("hidden")) {
+  if (event.key !== "Escape") return;
+
+  if (imageModal && !imageModal.classList.contains("hidden")) {
     closeModal();
+  }
+
+  if (promoPopup && !promoPopup.classList.contains("hidden")) {
+    closePromo();
   }
 });
 
-clearFilters.addEventListener("click", resetFilters);
+if (clearFilters) {
+  clearFilters.addEventListener("click", resetFilters);
+}
 
 document.querySelector("#currentYear").textContent = new Date().getFullYear();
 setGeneralWhatsappLinks();
+startCountdown();
 buildFilters();
 renderProducts();
+window.setTimeout(openPromoPopup, 900);
