@@ -3,6 +3,8 @@ const WHATSAPP_NUMBER = "50488045356";
 const GENERAL_MESSAGE = "Hola, quiero más información sobre el catálogo de maquillaje JOYERIAJRV.";
 const OFFER_MESSAGE = "Hola, quiero reclamar el 10% de descuento en mi primera compra del catalogo JOYERIAJRV.";
 const WHOLESALE_MESSAGE = "Hola, quiero abrir codigo mayorista. Tengo L 2,000 en producto variado.";
+const FEATURED_CODES = ["LQBL-PT", "DBJ-SET", "KC245123", "KC230005"];
+const PROMO_STORAGE_KEY = "jrvPromoShownDate";
 
 // Edita este array para agregar productos, cambiar precios o reemplazar imagenes.
 const products = [
@@ -441,16 +443,21 @@ const products = [
 const state = {
   search: "",
   category: "Todos",
-  brand: "Todas"
+  brand: "Todas",
+  sort: "featured"
 };
+
+const cart = new Map();
 
 const categoryLabels = {
   Pestanas: "Pestañas"
 };
 
 const productGrid = document.querySelector("#productGrid");
+const featuredGrid = document.querySelector("#featuredGrid");
 const searchInput = document.querySelector("#searchInput");
 const brandFilter = document.querySelector("#brandFilter");
+const sortFilter = document.querySelector("#sortFilter");
 const categoryFilters = document.querySelector("#categoryFilters");
 const resultSummary = document.querySelector("#resultSummary");
 const emptyState = document.querySelector("#emptyState");
@@ -463,6 +470,17 @@ const closeImageModal = document.querySelector("#closeImageModal");
 const promoPopup = document.querySelector("#promoPopup");
 const closePromoPopup = document.querySelector("#closePromoPopup");
 const countdownDisplays = document.querySelectorAll("[data-countdown]");
+const cartBar = document.querySelector("#cartBar");
+const cartSummary = document.querySelector("#cartSummary");
+const openCart = document.querySelector("#openCart");
+const closeCart = document.querySelector("#closeCart");
+const cartDrawer = document.querySelector("#cartDrawer");
+const cartItems = document.querySelector("#cartItems");
+const cartQuickWhatsapp = document.querySelector("#cartQuickWhatsapp");
+const cartDrawerWhatsapp = document.querySelector("#cartDrawerWhatsapp");
+const cartTotalLabel = document.querySelector("#cartTotalLabel");
+const cartRetailTotal = document.querySelector("#cartRetailTotal");
+const clearCart = document.querySelector("#clearCart");
 
 const normalize = (value) =>
   value
@@ -490,6 +508,33 @@ const whatsappLink = (message) =>
 
 const productWhatsappLink = (productName) =>
   whatsappLink(`Hola, quiero más información sobre este producto: ${productName}`);
+
+const getProductByCode = (code) => products.find((product) => product.code === code);
+
+const parsePrice = (price) => Number(price.replace(/[^\d.]/g, "")) || 0;
+
+const formatLempiras = (value) =>
+  `L ${value.toLocaleString("es-HN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+
+const getFeaturedRank = (product) => {
+  const rank = FEATURED_CODES.indexOf(product.code);
+  return rank === -1 ? Number.MAX_SAFE_INTEGER : rank;
+};
+
+const getCartQuantity = (code) => cart.get(code) || 0;
+
+const getCartEntries = () =>
+  [...cart.entries()]
+    .map(([code, quantity]) => ({ product: getProductByCode(code), quantity }))
+    .filter((entry) => entry.product && entry.quantity > 0);
+
+const getCartUnits = () => getCartEntries().reduce((total, entry) => total + entry.quantity, 0);
+
+const getCartRetailTotal = () =>
+  getCartEntries().reduce((total, entry) => total + parsePrice(entry.product.price) * entry.quantity, 0);
 
 function setGeneralWhatsappLinks() {
   document.querySelectorAll("[data-whatsapp-general]").forEach((link) => {
@@ -536,12 +581,44 @@ function startCountdown() {
   window.setInterval(updateCountdown, 1000);
 }
 
+function todayKey() {
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${today.getFullYear()}-${month}-${day}`;
+}
+
+function shouldShowPromoPopup() {
+  try {
+    return localStorage.getItem(PROMO_STORAGE_KEY) !== todayKey();
+  } catch (error) {
+    return true;
+  }
+}
+
+function markPromoShown() {
+  try {
+    localStorage.setItem(PROMO_STORAGE_KEY, todayKey());
+  } catch (error) {
+    // El popup sigue funcionando aunque el navegador bloquee localStorage.
+  }
+}
+
+function syncBodyScrollLock() {
+  const locked = [imageModal, promoPopup, cartDrawer].some(
+    (element) => element && !element.classList.contains("hidden")
+  );
+
+  document.body.style.overflow = locked ? "hidden" : "";
+}
+
 function openPromoPopup() {
   if (!promoPopup) return;
 
   promoPopup.classList.remove("hidden");
   promoPopup.classList.add("flex");
-  document.body.style.overflow = "hidden";
+  markPromoShown();
+  syncBodyScrollLock();
 }
 
 function closePromo() {
@@ -549,9 +626,7 @@ function closePromo() {
 
   promoPopup.classList.add("hidden");
   promoPopup.classList.remove("flex");
-  if (!imageModal || imageModal.classList.contains("hidden")) {
-    document.body.style.overflow = "";
-  }
+  syncBodyScrollLock();
 }
 
 function buildFilters() {
@@ -573,10 +648,29 @@ function buildFilters() {
     .join("");
 }
 
+function sortProducts(productList) {
+  return [...productList].sort((a, b) => {
+    if (state.sort === "price-asc") {
+      return parsePrice(a.price) - parsePrice(b.price);
+    }
+
+    if (state.sort === "price-desc") {
+      return parsePrice(b.price) - parsePrice(a.price);
+    }
+
+    if (state.sort === "name-asc") {
+      return a.name.localeCompare(b.name, "es");
+    }
+
+    const rankDiff = getFeaturedRank(a) - getFeaturedRank(b);
+    return rankDiff || a.name.localeCompare(b.name, "es");
+  });
+}
+
 function getFilteredProducts() {
   const query = normalize(state.search);
 
-  return products.filter((product) => {
+  return sortProducts(products.filter((product) => {
     const searchable = normalize(
       `${product.name} ${product.brand} ${product.category} ${product.code} ${product.description}`
     );
@@ -585,44 +679,67 @@ function getFilteredProducts() {
     const matchesBrand = state.brand === "Todas" || product.brand === state.brand;
 
     return matchesSearch && matchesCategory && matchesBrand;
-  });
+  }));
+}
+
+function renderProductCard(product, options = {}) {
+  const quantity = getCartQuantity(product.code);
+  const isFeatured = FEATURED_CODES.includes(product.code);
+  const imageLoading = options.eager ? "eager" : "lazy";
+  const imagePriority = options.eager ? ' fetchpriority="high"' : "";
+
+  return `
+    <article class="product-card ${options.compact ? "product-card-compact" : ""}">
+      <button
+        class="product-media"
+        type="button"
+        data-image="${escapeHtml(product.image)}"
+        data-title="${escapeHtml(product.name)}"
+        aria-label="Ampliar imagen de ${escapeHtml(product.name)}"
+      >
+        ${isFeatured ? '<span class="product-badge">Destacado</span>' : ""}
+        <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="${imageLoading}" decoding="async"${imagePriority} />
+      </button>
+      <div class="product-info">
+        <div class="product-meta">
+          <span class="tag brand-tag">${escapeHtml(product.brand)}</span>
+          <span class="tag">${escapeHtml(displayCategory(product.category))}</span>
+          <span class="tag">${escapeHtml(product.code)}</span>
+        </div>
+        <h3 class="product-title">${escapeHtml(product.name)}</h3>
+        <p class="product-description">${escapeHtml(product.description)}</p>
+        <div class="price-row">
+          <span class="price">${escapeHtml(product.price)}</span>
+          <span class="wholesale">Mayoreo ${escapeHtml(product.wholesale)}</span>
+        </div>
+        <div class="product-actions">
+          <button class="cart-product-button ${quantity ? "is-added" : ""}" type="button" data-cart-add="${escapeHtml(product.code)}">
+            ${quantity ? `Agregado (${quantity})` : "Agregar al pedido"}
+          </button>
+          <a class="product-whatsapp" href="${productWhatsappLink(product.name)}" target="_blank" rel="noreferrer">
+            WhatsApp
+          </a>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderFeaturedProducts() {
+  if (!featuredGrid) return;
+
+  const featuredProducts = FEATURED_CODES.map(getProductByCode).filter(Boolean);
+
+  featuredGrid.innerHTML = featuredProducts
+    .map((product, index) => renderProductCard(product, { compact: true, eager: index < 2 }))
+    .join("");
 }
 
 function renderProducts() {
   const filteredProducts = getFilteredProducts();
 
   productGrid.innerHTML = filteredProducts
-    .map(
-      (product) => `
-        <article class="product-card">
-          <button
-            class="product-media"
-            type="button"
-            data-image="${escapeHtml(product.image)}"
-            data-title="${escapeHtml(product.name)}"
-            aria-label="Ampliar imagen de ${escapeHtml(product.name)}"
-          >
-            <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy" />
-          </button>
-          <div class="product-info">
-            <div class="product-meta">
-              <span class="tag brand-tag">${escapeHtml(product.brand)}</span>
-              <span class="tag">${escapeHtml(displayCategory(product.category))}</span>
-              <span class="tag">${escapeHtml(product.code)}</span>
-            </div>
-            <h3 class="product-title">${escapeHtml(product.name)}</h3>
-            <p class="product-description">${escapeHtml(product.description)}</p>
-            <div class="price-row">
-              <span class="price">${escapeHtml(product.price)}</span>
-              <span class="wholesale">Mayoreo ${escapeHtml(product.wholesale)}</span>
-            </div>
-            <a class="product-whatsapp" href="${productWhatsappLink(product.name)}" target="_blank" rel="noreferrer">
-              Pedir por WhatsApp
-            </a>
-          </div>
-        </article>
-      `
-    )
+    .map((product) => renderProductCard(product))
     .join("");
 
   const plural = filteredProducts.length === 1 ? "producto" : "productos";
@@ -638,8 +755,10 @@ function resetFilters() {
   state.search = "";
   state.category = "Todos";
   state.brand = "Todas";
+  state.sort = "featured";
   searchInput.value = "";
   brandFilter.value = "Todas";
+  if (sortFilter) sortFilter.value = "featured";
   renderProducts();
 }
 
@@ -652,7 +771,7 @@ function openImageModal({ image, title }) {
   modalWhatsapp.href = productWhatsappLink(title);
   imageModal.classList.remove("hidden");
   imageModal.classList.add("flex");
-  document.body.style.overflow = "hidden";
+  syncBodyScrollLock();
   closeImageModal.focus();
 }
 
@@ -662,9 +781,150 @@ function closeModal() {
   imageModal.classList.add("hidden");
   imageModal.classList.remove("flex");
   modalImage.src = "";
-  if (!promoPopup || promoPopup.classList.contains("hidden")) {
-    document.body.style.overflow = "";
+  syncBodyScrollLock();
+}
+
+function buildCartMessage() {
+  const entries = getCartEntries();
+
+  if (!entries.length) {
+    return GENERAL_MESSAGE;
   }
+
+  const lines = entries
+    .map(
+      ({ product, quantity }) =>
+        `- ${quantity} x ${product.code} ${product.name} (${product.price} detalle / ${product.wholesale} mayoreo)`
+    )
+    .join("\n");
+
+  return `Hola, quiero hacer este pedido:\n${lines}\n\nTotal detalle aproximado: ${formatLempiras(getCartRetailTotal())}\nQuiero confirmar disponibilidad.`;
+}
+
+function refreshProductSelections() {
+  renderFeaturedProducts();
+  renderProducts();
+}
+
+function renderCart() {
+  const entries = getCartEntries();
+  const units = getCartUnits();
+  const total = getCartRetailTotal();
+  const messageUrl = whatsappLink(buildCartMessage());
+  const plural = units === 1 ? "producto" : "productos";
+
+  if (cartBar) {
+    cartBar.classList.toggle("hidden", units === 0);
+  }
+
+  if (cartSummary) {
+    cartSummary.textContent = `${units} ${plural} en pedido`;
+  }
+
+  if (cartQuickWhatsapp) {
+    cartQuickWhatsapp.href = messageUrl;
+  }
+
+  if (cartDrawerWhatsapp) {
+    cartDrawerWhatsapp.href = messageUrl;
+  }
+
+  if (cartTotalLabel) {
+    cartTotalLabel.textContent = `${units} ${plural} seleccionados`;
+  }
+
+  if (cartRetailTotal) {
+    cartRetailTotal.textContent = formatLempiras(total);
+  }
+
+  if (!cartItems) return;
+
+  cartItems.innerHTML = entries.length
+    ? entries
+        .map(
+          ({ product, quantity }) => `
+            <article class="cart-item">
+              <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy" decoding="async" />
+              <div>
+                <strong>${escapeHtml(product.name)}</strong>
+                <span>${escapeHtml(product.code)} · ${escapeHtml(product.price)}</span>
+                <div class="cart-item-actions">
+                  <button type="button" data-cart-decrease="${escapeHtml(product.code)}" aria-label="Restar ${escapeHtml(product.name)}">−</button>
+                  <span>${quantity}</span>
+                  <button type="button" data-cart-increase="${escapeHtml(product.code)}" aria-label="Sumar ${escapeHtml(product.name)}">+</button>
+                  <button type="button" data-cart-remove="${escapeHtml(product.code)}">Quitar</button>
+                </div>
+              </div>
+            </article>
+          `
+        )
+        .join("")
+    : `<p class="cart-empty">Tu pedido está vacío.</p>`;
+}
+
+function addToCart(code) {
+  if (!getProductByCode(code)) return;
+
+  cart.set(code, getCartQuantity(code) + 1);
+  refreshProductSelections();
+  renderCart();
+}
+
+function updateCartQuantity(code, delta) {
+  const nextQuantity = getCartQuantity(code) + delta;
+
+  if (nextQuantity <= 0) {
+    cart.delete(code);
+  } else {
+    cart.set(code, nextQuantity);
+  }
+
+  refreshProductSelections();
+  renderCart();
+}
+
+function removeFromCart(code) {
+  cart.delete(code);
+  refreshProductSelections();
+  renderCart();
+}
+
+function clearCartItems() {
+  cart.clear();
+  refreshProductSelections();
+  renderCart();
+}
+
+function openCartDrawer() {
+  if (!cartDrawer) return;
+
+  cartDrawer.classList.remove("hidden");
+  cartDrawer.classList.add("flex");
+  syncBodyScrollLock();
+}
+
+function closeCartDrawer() {
+  if (!cartDrawer) return;
+
+  cartDrawer.classList.add("hidden");
+  cartDrawer.classList.remove("flex");
+  syncBodyScrollLock();
+}
+
+function handleProductClick(event) {
+  const cartButton = event.target.closest("[data-cart-add]");
+  if (cartButton) {
+    addToCart(cartButton.dataset.cartAdd);
+    return;
+  }
+
+  const mediaButton = event.target.closest(".product-media");
+  if (!mediaButton) return;
+
+  openImageModal({
+    image: mediaButton.dataset.image,
+    title: mediaButton.dataset.title
+  });
 }
 
 searchInput.addEventListener("input", (event) => {
@@ -677,6 +937,13 @@ brandFilter.addEventListener("change", (event) => {
   renderProducts();
 });
 
+if (sortFilter) {
+  sortFilter.addEventListener("change", (event) => {
+    state.sort = event.target.value;
+    renderProducts();
+  });
+}
+
 categoryFilters.addEventListener("click", (event) => {
   const button = event.target.closest("[data-category]");
   if (!button) return;
@@ -684,15 +951,47 @@ categoryFilters.addEventListener("click", (event) => {
   renderProducts();
 });
 
-productGrid.addEventListener("click", (event) => {
-  const mediaButton = event.target.closest(".product-media");
-  if (!mediaButton) return;
+productGrid.addEventListener("click", handleProductClick);
 
-  openImageModal({
-    image: mediaButton.dataset.image,
-    title: mediaButton.dataset.title
+if (featuredGrid) {
+  featuredGrid.addEventListener("click", handleProductClick);
+}
+
+if (cartItems) {
+  cartItems.addEventListener("click", (event) => {
+    const increase = event.target.closest("[data-cart-increase]");
+    const decrease = event.target.closest("[data-cart-decrease]");
+    const remove = event.target.closest("[data-cart-remove]");
+
+    if (increase) {
+      updateCartQuantity(increase.dataset.cartIncrease, 1);
+    } else if (decrease) {
+      updateCartQuantity(decrease.dataset.cartDecrease, -1);
+    } else if (remove) {
+      removeFromCart(remove.dataset.cartRemove);
+    }
   });
-});
+}
+
+if (openCart) {
+  openCart.addEventListener("click", openCartDrawer);
+}
+
+if (closeCart) {
+  closeCart.addEventListener("click", closeCartDrawer);
+}
+
+if (cartDrawer) {
+  cartDrawer.addEventListener("click", (event) => {
+    if (event.target === cartDrawer) {
+      closeCartDrawer();
+    }
+  });
+}
+
+if (clearCart) {
+  clearCart.addEventListener("click", clearCartItems);
+}
 
 if (closeImageModal) {
   closeImageModal.addEventListener("click", closeModal);
@@ -728,6 +1027,10 @@ document.addEventListener("keydown", (event) => {
   if (promoPopup && !promoPopup.classList.contains("hidden")) {
     closePromo();
   }
+
+  if (cartDrawer && !cartDrawer.classList.contains("hidden")) {
+    closeCartDrawer();
+  }
 });
 
 if (clearFilters) {
@@ -738,5 +1041,11 @@ document.querySelector("#currentYear").textContent = new Date().getFullYear();
 setGeneralWhatsappLinks();
 startCountdown();
 buildFilters();
+renderFeaturedProducts();
 renderProducts();
-window.setTimeout(openPromoPopup, 900);
+renderCart();
+window.setTimeout(() => {
+  if (shouldShowPromoPopup()) {
+    openPromoPopup();
+  }
+}, 900);

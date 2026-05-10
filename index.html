@@ -5,13 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Catálogo en línea de maquillaje JOYERIAJRV con precios, fotos y pedidos por WhatsApp."
+      content="Maquillaje al detalle y mayoreo en Honduras. Compra por WhatsApp y abre tu código mayorista desde L 2,000 en producto variado."
     />
     <title>JOYERIA JRV | Catálogo de maquillaje</title>
+    <meta property="og:title" content="JOYERIA JRV | Maquillaje al detalle y mayoreo" />
+    <meta
+      property="og:description"
+      content="Catálogo visual de maquillaje con precios en Lempiras, pedidos por WhatsApp y código mayorista desde L 2,000."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="assets/productos/LQBL-PT.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="assets/logo-jrv.svg" type="image/svg+xml" />
+    <link rel="preload" as="image" href="FOTOS MAQUILLAJE/00a09aaa-7e64-47aa-8830-2d2dcf732575.png" />
     <link rel="stylesheet" href="styles.css" />
+    <!-- Meta Pixel / Google Analytics: pega aqui los scripts oficiales que te den Meta o Google. -->
     <script src="script.js" defer></script>
   </head>
   <body>
+    <!-- Meta Pixel / Google Tag Manager noscript: pega aqui el bloque <noscript> si te lo dan. -->
     <header class="site-header">
       <a class="brand" href="#inicio" aria-label="Ir al inicio">
         <span class="brand-mark">JRV</span>
@@ -19,6 +31,7 @@
       </a>
 
       <nav class="main-nav" aria-label="Navegación principal">
+        <a href="#destacados">Destacados</a>
         <a href="#catalogo">Catálogo</a>
         <a href="catalogo_maquillaje_premium_3.pdf" target="_blank" rel="noreferrer">PDF</a>
         <a href="https://www.facebook.com/profile.php?id=61578261711532" target="_blank" rel="noreferrer">Facebook</a>
@@ -37,7 +50,7 @@
           <p class="eyebrow">Catálogo en línea de maquillaje</p>
           <h1>JOYERIA JRV</h1>
           <p class="hero-copy">
-            Productos de belleza seleccionados con precios en Lempiras y pedido directo por WhatsApp.
+            Maquillaje al detalle y mayoreo en Honduras. Compra fácil por WhatsApp y abre tu código mayorista desde L 2,000.
           </p>
           <div class="hero-actions" aria-label="Acciones principales">
             <a class="btn btn-primary" href="#catalogo">Ver catálogo</a>
@@ -62,6 +75,37 @@
         </div>
       </section>
 
+      <section class="trust-strip" aria-label="Beneficios de compra">
+        <article>
+          <strong>Pedido por WhatsApp</strong>
+          <span>Atención directa para confirmar disponibilidad.</span>
+        </article>
+        <article>
+          <strong>Detalle y mayoreo</strong>
+          <span>Precios visibles para compra personal o reventa.</span>
+        </article>
+        <article>
+          <strong>Código mayorista</strong>
+          <span>Desde L 2,000 en producto variado.</span>
+        </article>
+        <article>
+          <strong>Catálogo visual</strong>
+          <span>Fotos, precios y filtros para comprar más rápido.</span>
+        </article>
+      </section>
+
+      <section class="featured-section" id="destacados">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Selección JRV</p>
+            <h2>Productos destacados</h2>
+          </div>
+          <a class="text-link" href="#catalogo">Ver todo el catálogo</a>
+        </div>
+
+        <div id="featuredGrid" class="featured-grid"></div>
+      </section>
+
       <section class="catalog-section" id="catalogo">
         <div class="section-heading">
           <div>
@@ -81,6 +125,16 @@
             <span>Marca</span>
             <select id="brandFilter"></select>
           </label>
+
+          <label class="sort-filter" for="sortFilter">
+            <span>Ordenar</span>
+            <select id="sortFilter">
+              <option value="featured">Destacados primero</option>
+              <option value="price-asc">Precio: menor a mayor</option>
+              <option value="price-desc">Precio: mayor a menor</option>
+              <option value="name-asc">Nombre A-Z</option>
+            </select>
+          </label>
         </div>
 
         <div id="categoryFilters" class="category-filters" aria-label="Filtros por categoria"></div>
@@ -97,6 +151,28 @@
     <a class="floating-whatsapp" data-whatsapp-general target="_blank" rel="noreferrer" aria-label="Escribir por WhatsApp">
       <span aria-hidden="true">WA</span>
     </a>
+
+    <div id="cartBar" class="cart-bar hidden" aria-live="polite">
+      <span id="cartSummary">0 productos en pedido</span>
+      <div class="cart-bar-actions">
+        <button class="btn btn-secondary" id="openCart" type="button">Ver pedido</button>
+        <a class="btn btn-primary" id="cartQuickWhatsapp" target="_blank" rel="noreferrer">Enviar WhatsApp</a>
+      </div>
+    </div>
+
+    <div id="cartDrawer" class="cart-drawer hidden" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+      <div class="cart-panel">
+        <button class="modal-close" id="closeCart" type="button" aria-label="Cerrar pedido">&times;</button>
+        <h2 id="cartTitle">Tu pedido</h2>
+        <div id="cartItems" class="cart-items"></div>
+        <div class="cart-total">
+          <span id="cartTotalLabel">0 productos seleccionados</span>
+          <strong id="cartRetailTotal">L 0.00</strong>
+        </div>
+        <a class="btn btn-primary" id="cartDrawerWhatsapp" target="_blank" rel="noreferrer">Enviar pedido por WhatsApp</a>
+        <button class="btn btn-secondary" id="clearCart" type="button">Vaciar pedido</button>
+      </div>
+    </div>
 
     <div id="promoPopup" class="promo-popup hidden" role="dialog" aria-modal="true" aria-labelledby="promoTitle">
       <div class="promo-card">
