@@ -3,6 +3,7 @@ const WHATSAPP_NUMBER = "50488045356";
 const GENERAL_MESSAGE = "Hola, quiero más información sobre el catálogo de maquillaje JOYERIAJRV.";
 const OFFER_MESSAGE = "Hola, quiero reclamar el 10% de descuento en mi primera compra del catalogo JOYERIAJRV.";
 const WHOLESALE_MESSAGE = "Hola, quiero abrir codigo mayorista. Tengo L 2,000 en producto variado.";
+const AFFILIATE_MESSAGE = "Hola, me interesa unirme al Programa de Afiliadas Beauty de JOYERIAJRV. ¿Me pueden compartir el catálogo disponible?";
 const FEATURED_CODES = ["LQBL-PT", "DBJ-SET", "KC245123", "KC230005"];
 const SOLD_OUT_CODES = [];
 const PROMO_STORAGE_KEY = "jrvPromoShownDate";
@@ -580,6 +581,10 @@ function setGeneralWhatsappLinks() {
 
   document.querySelectorAll("[data-whatsapp-wholesale]").forEach((link) => {
     link.href = whatsappLink(WHOLESALE_MESSAGE);
+  });
+
+  document.querySelectorAll("[data-whatsapp-affiliate]").forEach((link) => {
+    link.href = whatsappLink(AFFILIATE_MESSAGE);
   });
 }
 
