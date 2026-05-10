@@ -20,10 +20,38 @@
     <meta name="robots" content="index, follow" />
     <link rel="icon" href="assets/logo-jrv.svg" type="image/svg+xml" />
     <link rel="preload" as="image" href="assets/optimized/hero.webp" type="image/webp" />
-    <link rel="stylesheet" href="styles.min.css" />
-    <!-- Google Analytics: pega aqui el script oficial de GA4. -->
-    <!-- Meta Pixel: pega aqui el script oficial de Meta. -->
-    <!-- Hotjar: pega aqui el script oficial si decides usarlo. -->
+    <link rel="stylesheet" href="styles.css" />
+    <!--
+      ═══════════════════════════════════════════════════════════════
+      GOOGLE ANALYTICS 4 — cómo activarlo:
+      1. Ve a https://analytics.google.com y crea una propiedad GA4.
+      2. Admin > Flujos de datos > Agregar flujo > Web.
+      3. Copia el "ID de medición" (formato G-XXXXXXXXXX).
+      4. Pega aquí abajo el bloque <script> que GA4 te proporciona:
+
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+      </script>
+      ═══════════════════════════════════════════════════════════════
+    -->
+
+    <!--
+      ═══════════════════════════════════════════════════════════════
+      META PIXEL — cómo activarlo:
+      1. Ve a https://business.facebook.com > Administrador de eventos.
+      2. Crea un pixel o usa uno existente. Copia el ID numérico.
+      3. Clic en "Configurar" > "Instalar código manualmente".
+      4. Pega aquí abajo el bloque <script> del Pixel Base.
+      5. El bloque <noscript> va en la línea marcada más abajo en el <body>.
+      ═══════════════════════════════════════════════════════════════
+    -->
+
+    <!-- Hotjar (opcional): ve a https://www.hotjar.com, crea un sitio,
+         y pega el script de seguimiento aquí si decides usarlo. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -39,10 +67,12 @@
         ]
       }
     </script>
-    <script src="script.min.js" defer></script>
+    <script src="script.js" defer></script>
   </head>
   <body>
-    <!-- Google Tag Manager / Meta Pixel noscript: pega aqui el bloque <noscript> si te lo dan. -->
+    <!-- Meta Pixel <noscript>: pega aquí el bloque que Meta te da en el paso 4 de instalación.
+         Ejemplo: <noscript><img height="1" width="1" style="display:none"
+         src="https://www.facebook.com/tr?id=TU_PIXEL_ID&ev=PageView&noscript=1"/></noscript> -->
     <a class="skip-link" href="#catalogo">Saltar al catálogo</a>
     <header class="site-header">
       <a class="brand" href="#inicio" aria-label="Ir al inicio">
@@ -248,7 +278,7 @@
         <form class="advisor-form" id="advisorForm">
           <label for="customerName">
             <span>Nombre</span>
-            <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Tu nombre" />
+            <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Tu nombre" required aria-required="true" />
           </label>
           <label for="purchaseType">
             <span>Interés</span>
@@ -269,9 +299,10 @@
           </label>
           <label class="advisor-message" for="advisorMessage">
             <span>¿Qué buscas?</span>
-            <textarea id="advisorMessage" name="advisorMessage" rows="3" placeholder="Ej. rubores, labiales, productos para reventa"></textarea>
+            <textarea id="advisorMessage" name="advisorMessage" rows="3" placeholder="Ej. rubores, labiales, productos para reventa" required aria-required="true"></textarea>
           </label>
           <button class="btn btn-primary" type="submit">Enviar consulta por WhatsApp</button>
+          <p id="advisorFeedback" class="advisor-feedback" hidden aria-live="polite"></p>
         </form>
       </section>
 

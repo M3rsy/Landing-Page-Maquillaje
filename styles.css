@@ -1196,6 +1196,13 @@ textarea:focus-visible {
   color: rgba(255, 255, 255, 0.6);
 }
 
+.advisor-feedback {
+  color: var(--green);
+  font-weight: 600;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+}
+
 @media (max-width: 860px) {
   .site-header {
     align-items: flex-start;
@@ -1265,6 +1272,28 @@ textarea:focus-visible {
 
   .footer-links {
     justify-content: start;
+  }
+}
+
+@media (max-width: 768px) {
+  .featured-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .catalog-tools {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hero h1 {
+    font-size: 2.4rem;
+  }
+
+  .flash-offer {
+    padding: 1.2rem;
   }
 }
 

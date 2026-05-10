@@ -4,7 +4,6 @@ const GENERAL_MESSAGE = "Hola, quiero más información sobre el catálogo de ma
 const OFFER_MESSAGE = "Hola, quiero reclamar el 10% de descuento en mi primera compra del catalogo JOYERIAJRV.";
 const WHOLESALE_MESSAGE = "Hola, quiero abrir codigo mayorista. Tengo L 2,000 en producto variado.";
 const FEATURED_CODES = ["LQBL-PT", "DBJ-SET", "KC245123", "KC230005"];
-const HOT_SALE_CODES = ["LQBL-PT", "DBJ-SET", "KC245123", "KC230005"];
 const SOLD_OUT_CODES = [];
 const PROMO_STORAGE_KEY = "jrvPromoShownDate";
 
@@ -494,19 +493,26 @@ const normalize = (value) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
+const HTML_ENTITIES = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;"
+};
+
 const escapeHtml = (value) =>
-  value.toString().replace(/[&<>"']/g, (char) => {
-    const entities = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    };
-    return entities[char];
-  });
+  value.toString().replace(/[&<>"']/g, (char) => HTML_ENTITIES[char]);
 
 const displayCategory = (category) => categoryLabels[category] || category;
+
+function debounce(fn, wait) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), wait);
+  };
+}
 
 const whatsappLink = (message) =>
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
@@ -518,7 +524,7 @@ const getProductByCode = (code) => products.find((product) => product.code === c
 
 const getOptimizedProductImage = (product) => `assets/optimized/productos/${product.code}.webp`;
 
-const isProductHot = (product) => product.hot === true || HOT_SALE_CODES.includes(product.code);
+const isProductHot = (product) => product.hot === true || FEATURED_CODES.includes(product.code);
 
 const isProductSoldOut = (product) => product.status === "soldout" || SOLD_OUT_CODES.includes(product.code);
 
@@ -592,17 +598,18 @@ function formatCountdown(milliseconds) {
   return [hours, minutes, seconds].map((value) => value.toString().padStart(2, "0")).join(":");
 }
 
-function updateCountdown() {
-  const remaining = getOfferDeadline().getTime() - Date.now();
-  const formatted = formatCountdown(remaining);
-
-  countdownDisplays.forEach((display) => {
-    display.textContent = formatted;
-  });
-}
-
 function startCountdown() {
   if (!countdownDisplays.length) return;
+
+  const deadlineMs = getOfferDeadline().getTime();
+
+  function updateCountdown() {
+    const remaining = deadlineMs - Date.now();
+    const formatted = formatCountdown(remaining);
+    countdownDisplays.forEach((display) => {
+      display.textContent = formatted;
+    });
+  }
 
   updateCountdown();
   window.setInterval(updateCountdown, 1000);
@@ -875,8 +882,16 @@ function buildAdvisorMessage(form) {
 
 function submitAdvisorForm(event) {
   event.preventDefault();
-  const message = buildAdvisorMessage(event.currentTarget);
+  const form = event.currentTarget;
+  const message = buildAdvisorMessage(form);
   window.open(whatsappLink(message), "_blank", "noopener");
+
+  const feedback = document.querySelector("#advisorFeedback");
+  if (feedback) {
+    feedback.textContent = "WhatsApp abierto con tu consulta. Nos contactaremos pronto.";
+    feedback.hidden = false;
+    setTimeout(() => { feedback.hidden = true; }, 5000);
+  }
 }
 
 function refreshProductSelections() {
@@ -1008,10 +1023,13 @@ function handleProductClick(event) {
   });
 }
 
-searchInput.addEventListener("input", (event) => {
-  state.search = event.target.value;
-  renderProducts();
-});
+searchInput.addEventListener(
+  "input",
+  debounce((event) => {
+    state.search = event.target.value;
+    renderProducts();
+  }, 300)
+);
 
 brandFilter.addEventListener("change", (event) => {
   state.brand = event.target.value;
