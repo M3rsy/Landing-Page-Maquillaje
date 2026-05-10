@@ -21,23 +21,15 @@
     <link rel="icon" href="assets/logo-jrv.svg" type="image/svg+xml" />
     <link rel="preload" as="image" href="assets/optimized/hero.webp" type="image/webp" />
     <link rel="stylesheet" href="styles.css" />
-    <!--
-      ═══════════════════════════════════════════════════════════════
-      GOOGLE ANALYTICS 4 — cómo activarlo:
-      1. Ve a https://analytics.google.com y crea una propiedad GA4.
-      2. Admin > Flujos de datos > Agregar flujo > Web.
-      3. Copia el "ID de medición" (formato G-XXXXXXXXXX).
-      4. Pega aquí abajo el bloque <script> que GA4 te proporciona:
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X60PS8H36Q"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-      <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX');
-      </script>
-      ═══════════════════════════════════════════════════════════════
-    -->
+      gtag('config', 'G-X60PS8H36Q');
+    </script>
 
     <!--
       ═══════════════════════════════════════════════════════════════
