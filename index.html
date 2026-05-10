@@ -17,16 +17,33 @@
     <meta property="og:image" content="assets/optimized/productos/LQBL-PT.webp" />
     <meta property="og:image:alt" content="Producto destacado de maquillaje JOYERIA JRV" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="robots" content="index, follow" />
     <link rel="icon" href="assets/logo-jrv.svg" type="image/svg+xml" />
     <link rel="preload" as="image" href="assets/optimized/hero.webp" type="image/webp" />
     <link rel="stylesheet" href="styles.min.css" />
     <!-- Google Analytics: pega aqui el script oficial de GA4. -->
     <!-- Meta Pixel: pega aqui el script oficial de Meta. -->
     <!-- Hotjar: pega aqui el script oficial si decides usarlo. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Store",
+        "name": "JOYERIA JRV",
+        "description": "Catálogo de maquillaje al detalle y mayoreo en Honduras con pedidos por WhatsApp.",
+        "telephone": "+50488045356",
+        "areaServed": "Honduras",
+        "priceRange": "L",
+        "sameAs": [
+          "https://www.facebook.com/profile.php?id=61578261711532",
+          "https://www.instagram.com/JOYERIAJRV"
+        ]
+      }
+    </script>
     <script src="script.min.js" defer></script>
   </head>
   <body>
     <!-- Google Tag Manager / Meta Pixel noscript: pega aqui el bloque <noscript> si te lo dan. -->
+    <a class="skip-link" href="#catalogo">Saltar al catálogo</a>
     <header class="site-header">
       <a class="brand" href="#inicio" aria-label="Ir al inicio">
         <span class="brand-mark">JRV</span>
@@ -35,7 +52,9 @@
 
       <nav class="main-nav" aria-label="Navegación principal">
         <a href="#destacados">Destacados</a>
+        <a href="#ofertas">Ofertas</a>
         <a href="#catalogo">Catálogo</a>
+        <a href="#dudas">Dudas</a>
         <a href="catalogo_maquillaje_premium_3.pdf" target="_blank" rel="noreferrer">PDF</a>
         <a href="https://www.facebook.com/profile.php?id=61578261711532" target="_blank" rel="noreferrer">Facebook</a>
         <a href="https://www.instagram.com/JOYERIAJRV" target="_blank" rel="noreferrer">@JOYERIAJRV</a>
@@ -56,9 +75,10 @@
             Maquillaje al detalle y mayoreo en Honduras. Compra fácil por WhatsApp y abre tu código mayorista desde L 2,000.
           </p>
           <div class="hero-actions" aria-label="Acciones principales">
-            <a class="btn btn-primary" href="#catalogo">Ver catálogo</a>
-            <a class="btn btn-secondary" data-whatsapp-general target="_blank" rel="noreferrer">Pedir asesoría</a>
+            <a class="btn btn-primary" href="#catalogo">Comprar ahora</a>
+            <a class="btn btn-secondary" data-whatsapp-wholesale target="_blank" rel="noreferrer">Abrir código mayorista</a>
           </div>
+          <a class="scroll-cue" href="#destacados" aria-label="Ir a productos destacados">Ver destacados ↓</a>
 
           <aside class="flash-offer" aria-label="Oferta relámpago">
             <div>
@@ -97,6 +117,22 @@
         </article>
       </section>
 
+      <section class="conversion-section" id="ofertas">
+        <div class="offer-panel">
+          <div>
+            <p class="eyebrow">Oferta de bienvenida</p>
+            <h2>Tu primera compra con 10% de descuento</h2>
+            <p>
+              Reclama el descuento por WhatsApp, arma tu pedido desde el catálogo y confirma disponibilidad antes de pagar.
+            </p>
+          </div>
+          <div class="offer-panel-actions">
+            <a class="btn btn-primary" data-whatsapp-offer target="_blank" rel="noreferrer">Reclamar mi 10%</a>
+            <a class="btn btn-secondary" href="#asesoria">Quiero asesoría rápida</a>
+          </div>
+        </div>
+      </section>
+
       <section class="featured-section" id="destacados">
         <div class="section-heading">
           <div>
@@ -107,6 +143,49 @@
         </div>
 
         <div id="featuredGrid" class="featured-grid"></div>
+      </section>
+
+      <section class="steps-section" aria-label="Cómo comprar">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Compra simple</p>
+            <h2>Elige, agrega y envía</h2>
+          </div>
+        </div>
+        <div class="steps-grid">
+          <article>
+            <span>1</span>
+            <strong>Explora el catálogo</strong>
+            <p>Filtra por marca, categoría o precio para encontrar rápido lo que necesitas.</p>
+          </article>
+          <article>
+            <span>2</span>
+            <strong>Agrega productos</strong>
+            <p>Arma tu pedido con varios artículos antes de escribir por WhatsApp.</p>
+          </article>
+          <article>
+            <span>3</span>
+            <strong>Confirma por WhatsApp</strong>
+            <p>Enviamos disponibilidad, total y orientación para detalle o mayoreo.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="social-proof-section" aria-label="Señales de confianza">
+        <div class="proof-grid">
+          <article>
+            <strong>43</strong>
+            <span>productos visibles con foto, código y precio.</span>
+          </article>
+          <article>
+            <strong>L 2,000</strong>
+            <span>mínimo para consultar código mayorista.</span>
+          </article>
+          <article>
+            <strong>WhatsApp</strong>
+            <span>canal directo para confirmar disponibilidad.</span>
+          </article>
+        </div>
       </section>
 
       <section class="catalog-section" id="catalogo">
@@ -147,6 +226,69 @@
         <div id="emptyState" class="empty-state" hidden>
           <h3>No encontramos productos con esos filtros</h3>
           <button class="btn btn-primary" id="clearFilters" type="button">Limpiar búsqueda</button>
+        </div>
+      </section>
+
+      <section class="advisor-section" id="asesoria">
+        <div class="advisor-copy">
+          <p class="eyebrow">Asesoría rápida</p>
+          <h2>¿Quieres que te ayudemos a elegir?</h2>
+          <p>Completa estos datos y se abrirá WhatsApp con tu consulta lista. No necesitas crear cuenta.</p>
+        </div>
+        <form class="advisor-form" id="advisorForm">
+          <label for="customerName">
+            <span>Nombre</span>
+            <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Tu nombre" />
+          </label>
+          <label for="purchaseType">
+            <span>Interés</span>
+            <select id="purchaseType" name="purchaseType">
+              <option value="Compra al detalle">Compra al detalle</option>
+              <option value="Código mayorista">Código mayorista</option>
+              <option value="Regalo o combo">Regalo o combo</option>
+            </select>
+          </label>
+          <label for="budgetRange">
+            <span>Presupuesto aproximado</span>
+            <select id="budgetRange" name="budgetRange">
+              <option value="Aún no definido">Aún no definido</option>
+              <option value="Menos de L 500">Menos de L 500</option>
+              <option value="L 500 a L 1,500">L 500 a L 1,500</option>
+              <option value="L 2,000 o más">L 2,000 o más</option>
+            </select>
+          </label>
+          <label class="advisor-message" for="advisorMessage">
+            <span>¿Qué buscas?</span>
+            <textarea id="advisorMessage" name="advisorMessage" rows="3" placeholder="Ej. rubores, labiales, productos para reventa"></textarea>
+          </label>
+          <button class="btn btn-primary" type="submit">Enviar consulta por WhatsApp</button>
+        </form>
+      </section>
+
+      <section class="faq-section" id="dudas">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Respuestas rápidas</p>
+            <h2>Dudas antes de comprar</h2>
+          </div>
+        </div>
+        <div class="faq-grid">
+          <details>
+            <summary>¿Los precios están en Lempiras?</summary>
+            <p>Sí, todos los precios visibles están en Lempiras. Se confirma disponibilidad por WhatsApp.</p>
+          </details>
+          <details>
+            <summary>¿Cómo funciona el código mayorista?</summary>
+            <p>Escríbenos por WhatsApp si deseas abrirlo desde L 2,000 en producto variado.</p>
+          </details>
+          <details>
+            <summary>¿Puedo pedir varios productos a la vez?</summary>
+            <p>Sí. Usa “Agregar al pedido” y luego envía todo junto por WhatsApp.</p>
+          </details>
+          <details>
+            <summary>¿Los precios pueden cambiar?</summary>
+            <p>Los precios están sujetos a cambio sin previo aviso. Siempre confirmamos antes de cerrar el pedido.</p>
+          </details>
         </div>
       </section>
     </main>

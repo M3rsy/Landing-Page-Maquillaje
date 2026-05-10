@@ -481,6 +481,7 @@ const cartDrawerWhatsapp = document.querySelector("#cartDrawerWhatsapp");
 const cartTotalLabel = document.querySelector("#cartTotalLabel");
 const cartRetailTotal = document.querySelector("#cartRetailTotal");
 const clearCart = document.querySelector("#clearCart");
+const advisorForm = document.querySelector("#advisorForm");
 
 const normalize = (value) =>
   value
@@ -819,6 +820,30 @@ function buildCartMessage() {
   return `Hola, quiero hacer este pedido:\n${lines}\n\nTotal detalle aproximado: ${formatLempiras(getCartRetailTotal())}\nQuiero confirmar disponibilidad.`;
 }
 
+function buildAdvisorMessage(form) {
+  const data = new FormData(form);
+  const name = data.get("customerName")?.toString().trim();
+  const purchaseType = data.get("purchaseType") || "Compra al detalle";
+  const budgetRange = data.get("budgetRange") || "Aún no definido";
+  const message = data.get("advisorMessage")?.toString().trim();
+
+  return [
+    `Hola, quiero asesoría para ${purchaseType}.`,
+    name ? `Mi nombre es ${name}.` : "",
+    `Presupuesto aproximado: ${budgetRange}.`,
+    message ? `Estoy buscando: ${message}.` : "",
+    "Me gustaría confirmar opciones disponibles en Honduras."
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function submitAdvisorForm(event) {
+  event.preventDefault();
+  const message = buildAdvisorMessage(event.currentTarget);
+  window.open(whatsappLink(message), "_blank", "noopener");
+}
+
 function refreshProductSelections() {
   renderFeaturedProducts();
   renderProducts();
@@ -1011,6 +1036,10 @@ if (cartDrawer) {
 
 if (clearCart) {
   clearCart.addEventListener("click", clearCartItems);
+}
+
+if (advisorForm) {
+  advisorForm.addEventListener("submit", submitAdvisorForm);
 }
 
 if (closeImageModal) {
