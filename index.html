@@ -21,8 +21,8 @@
       <nav class="main-nav" aria-label="Navegación principal">
         <a href="#catalogo">Catálogo</a>
         <a href="catalogo_maquillaje_premium_3.pdf" target="_blank" rel="noreferrer">PDF</a>
-        <a href="https://www.facebook.com/JOYERIAJRV" target="_blank" rel="noreferrer">Facebook</a>
-        <a href="https://www.instagram.com/JOYERIAJRV" target="_blank" rel="noreferrer">Instagram</a>
+        <a href="https://www.facebook.com/profile.php?id=61578261711532" target="_blank" rel="noreferrer">Facebook</a>
+        <a href="https://www.instagram.com/JOYERIAJRV" target="_blank" rel="noreferrer">@JOYERIAJRV</a>
       </nav>
 
       <a class="header-whatsapp" data-whatsapp-general target="_blank" rel="noreferrer">
@@ -43,6 +43,22 @@
             <a class="btn btn-primary" href="#catalogo">Ver catálogo</a>
             <a class="btn btn-secondary" data-whatsapp-general target="_blank" rel="noreferrer">Pedir asesoría</a>
           </div>
+
+          <aside class="flash-offer" aria-label="Oferta relámpago">
+            <div>
+              <p class="offer-kicker">Oferta relámpago</p>
+              <strong>10% de descuento en tu primera compra</strong>
+              <span>Abre tu código mayorista desde L 2,000 en producto variado.</span>
+            </div>
+            <div class="offer-countdown" aria-label="Tiempo restante">
+              <span data-countdown>00:00:00</span>
+              <small>termina hoy</small>
+            </div>
+            <div class="flash-actions">
+              <a class="btn btn-primary" data-whatsapp-offer target="_blank" rel="noreferrer">Reclamar oferta</a>
+              <a class="btn btn-secondary" data-whatsapp-wholesale target="_blank" rel="noreferrer">Código mayorista</a>
+            </div>
+          </aside>
         </div>
       </section>
 
@@ -82,6 +98,37 @@
       <span aria-hidden="true">WA</span>
     </a>
 
+    <div id="promoPopup" class="promo-popup hidden" role="dialog" aria-modal="true" aria-labelledby="promoTitle">
+      <div class="promo-card">
+        <button class="modal-close" id="closePromoPopup" type="button" aria-label="Cerrar oferta">&times;</button>
+        <p class="offer-kicker">Oferta relámpago</p>
+        <h2 id="promoTitle">10% en tu primera compra</h2>
+        <p>
+          Reclama tu descuento hoy y consulta cómo abrir tu código mayorista con L 2,000
+          en producto variado.
+        </p>
+        <div class="offer-countdown popup-countdown" aria-label="Tiempo restante de la oferta">
+          <span data-countdown>00:00:00</span>
+          <small>termina hoy</small>
+        </div>
+        <div class="promo-actions">
+          <a class="btn btn-primary" data-whatsapp-offer target="_blank" rel="noreferrer">Quiero mi 10%</a>
+          <a class="btn btn-secondary" data-whatsapp-wholesale target="_blank" rel="noreferrer">Abrir código mayorista</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="imageModal" class="image-modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="image-modal-content">
+        <button class="modal-close" id="closeImageModal" type="button" aria-label="Cerrar imagen">&times;</button>
+        <img id="modalImage" src="" alt="" />
+        <div class="image-modal-footer">
+          <h2 id="modalTitle"></h2>
+          <a id="modalWhatsapp" class="product-whatsapp" target="_blank" rel="noreferrer">Pedir por WhatsApp</a>
+        </div>
+      </div>
+    </div>
+
     <footer class="site-footer">
       <div>
         <strong>JOYERIA JRV</strong>
@@ -89,8 +136,8 @@
       </div>
       <div class="footer-links">
         <a data-whatsapp-general target="_blank" rel="noreferrer">WhatsApp: 88045356</a>
-        <a href="https://www.facebook.com/JOYERIAJRV" target="_blank" rel="noreferrer">Facebook</a>
-        <a href="https://www.instagram.com/JOYERIAJRV" target="_blank" rel="noreferrer">Instagram</a>
+        <a href="https://www.facebook.com/profile.php?id=61578261711532" target="_blank" rel="noreferrer">Facebook</a>
+        <a href="https://www.instagram.com/JOYERIAJRV" target="_blank" rel="noreferrer">@JOYERIAJRV</a>
       </div>
       <small>&copy; <span id="currentYear"></span> JOYERIA JRV</small>
     </footer>
