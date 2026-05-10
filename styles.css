@@ -634,7 +634,7 @@ textarea:focus-visible {
 
 .catalog-tools {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px) minmax(160px, 220px);
+  grid-template-columns: minmax(0, 1fr) minmax(145px, 190px) minmax(145px, 190px) minmax(160px, 220px);
   gap: 0.8rem;
   max-width: 1180px;
   margin: 0 auto 1rem;
@@ -642,6 +642,7 @@ textarea:focus-visible {
 
 .search-box,
 .brand-filter,
+.status-filter,
 .sort-filter {
   display: grid;
   gap: 0.35rem;
@@ -652,6 +653,7 @@ textarea:focus-visible {
 
 .search-box input,
 .brand-filter select,
+.status-filter select,
 .sort-filter select {
   width: 100%;
   min-height: 48px;
@@ -667,12 +669,14 @@ textarea:focus-visible {
 }
 
 .brand-filter select,
+.status-filter select,
 .sort-filter select {
   padding: 0 0.85rem;
 }
 
 .search-box input:focus,
 .brand-filter select:focus,
+.status-filter select:focus,
 .sort-filter select:focus {
   border-color: rgba(177, 31, 85, 0.7);
   box-shadow: 0 0 0 4px rgba(177, 31, 85, 0.12);
@@ -743,7 +747,7 @@ textarea:focus-visible {
 .product-badge {
   position: absolute;
   top: 0.75rem;
-  left: 0.75rem;
+  right: 0.75rem;
   z-index: 1;
   padding: 0.3rem 0.55rem;
   border-radius: 999px;
@@ -751,6 +755,30 @@ textarea:focus-visible {
   color: #fff;
   font-size: 0.72rem;
   font-weight: 900;
+}
+
+.status-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.status-available {
+  background: var(--green);
+}
+
+.status-soldout {
+  background: #6f5f65;
+}
+
+.hot-badge {
+  background: #e23d72;
 }
 
 .product-info {
@@ -846,6 +874,14 @@ textarea:focus-visible {
 .cart-product-button.is-added {
   background: var(--green);
   color: #fff;
+}
+
+.cart-product-button:disabled {
+  border-color: rgba(111, 95, 101, 0.25);
+  background: #eee4e8;
+  color: #6f5f65;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .empty-state {

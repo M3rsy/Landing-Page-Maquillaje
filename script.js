@@ -4,6 +4,8 @@ const GENERAL_MESSAGE = "Hola, quiero más información sobre el catálogo de ma
 const OFFER_MESSAGE = "Hola, quiero reclamar el 10% de descuento en mi primera compra del catalogo JOYERIAJRV.";
 const WHOLESALE_MESSAGE = "Hola, quiero abrir codigo mayorista. Tengo L 2,000 en producto variado.";
 const FEATURED_CODES = ["LQBL-PT", "DBJ-SET", "KC245123", "KC230005"];
+const HOT_SALE_CODES = ["LQBL-PT", "DBJ-SET", "KC245123", "KC230005"];
+const SOLD_OUT_CODES = [];
 const PROMO_STORAGE_KEY = "jrvPromoShownDate";
 
 // Edita este array para agregar productos, cambiar precios o reemplazar imagenes.
@@ -444,6 +446,7 @@ const state = {
   search: "",
   category: "Todos",
   brand: "Todas",
+  status: "all",
   sort: "featured"
 };
 
@@ -457,6 +460,7 @@ const productGrid = document.querySelector("#productGrid");
 const featuredGrid = document.querySelector("#featuredGrid");
 const searchInput = document.querySelector("#searchInput");
 const brandFilter = document.querySelector("#brandFilter");
+const statusFilter = document.querySelector("#statusFilter");
 const sortFilter = document.querySelector("#sortFilter");
 const categoryFilters = document.querySelector("#categoryFilters");
 const resultSummary = document.querySelector("#resultSummary");
@@ -513,6 +517,26 @@ const productWhatsappLink = (productName) =>
 const getProductByCode = (code) => products.find((product) => product.code === code);
 
 const getOptimizedProductImage = (product) => `assets/optimized/productos/${product.code}.webp`;
+
+const isProductHot = (product) => product.hot === true || HOT_SALE_CODES.includes(product.code);
+
+const isProductSoldOut = (product) => product.status === "soldout" || SOLD_OUT_CODES.includes(product.code);
+
+const getProductStatus = (product) => {
+  if (isProductSoldOut(product)) {
+    return {
+      key: "soldout",
+      label: "Agotado",
+      className: "status-soldout"
+    };
+  }
+
+  return {
+    key: "available",
+    label: "Disponible",
+    className: "status-available"
+  };
+};
 
 const parsePrice = (price) => Number(price.replace(/[^\d.]/g, "")) || 0;
 
@@ -681,14 +705,21 @@ function getFilteredProducts() {
     const matchesSearch = !query || searchable.includes(query);
     const matchesCategory = state.category === "Todos" || product.category === state.category;
     const matchesBrand = state.brand === "Todas" || product.brand === state.brand;
+    const matchesStatus =
+      state.status === "all" ||
+      (state.status === "hot" && isProductHot(product)) ||
+      (state.status === "available" && !isProductSoldOut(product)) ||
+      (state.status === "soldout" && isProductSoldOut(product));
 
-    return matchesSearch && matchesCategory && matchesBrand;
+    return matchesSearch && matchesCategory && matchesBrand && matchesStatus;
   }));
 }
 
 function renderProductCard(product, options = {}) {
   const quantity = getCartQuantity(product.code);
-  const isFeatured = FEATURED_CODES.includes(product.code);
+  const isHot = isProductHot(product);
+  const isSoldOut = isProductSoldOut(product);
+  const productStatus = getProductStatus(product);
   const imageSrc = getOptimizedProductImage(product);
   const imageLoading = options.eager ? "eager" : "lazy";
   const imagePriority = options.eager ? ' fetchpriority="high"' : "";
@@ -703,7 +734,8 @@ function renderProductCard(product, options = {}) {
         data-title="${escapeHtml(product.name)}"
         aria-label="Ampliar imagen de ${escapeHtml(product.name)}"
       >
-        ${isFeatured ? '<span class="product-badge">Destacado</span>' : ""}
+        <span class="status-badge ${productStatus.className}">${productStatus.label}</span>
+        ${isHot ? '<span class="product-badge hot-badge">Venta HOT</span>' : ""}
         <img
           src="${escapeHtml(imageSrc)}"
           data-fallback-image="${escapeHtml(product.image)}"
@@ -731,8 +763,9 @@ function renderProductCard(product, options = {}) {
             data-cart-add="${escapeHtml(product.code)}"
             aria-label="Agregar ${escapeHtml(product.name)} al pedido"
             aria-pressed="${quantity ? "true" : "false"}"
+            ${isSoldOut ? "disabled" : ""}
           >
-            ${quantity ? `Agregado (${quantity})` : "Agregar al pedido"}
+            ${isSoldOut ? "Agotado" : quantity ? `Agregado (${quantity})` : "Agregar al pedido"}
           </button>
           <a class="product-whatsapp" href="${productWhatsappLink(product.name)}" target="_blank" rel="noreferrer">
             WhatsApp
@@ -773,9 +806,11 @@ function resetFilters() {
   state.search = "";
   state.category = "Todos";
   state.brand = "Todas";
+  state.status = "all";
   state.sort = "featured";
   searchInput.value = "";
   brandFilter.value = "Todas";
+  if (statusFilter) statusFilter.value = "all";
   if (sortFilter) sortFilter.value = "featured";
   renderProducts();
 }
@@ -906,7 +941,8 @@ function renderCart() {
 }
 
 function addToCart(code) {
-  if (!getProductByCode(code)) return;
+  const product = getProductByCode(code);
+  if (!product || isProductSoldOut(product)) return;
 
   cart.set(code, getCartQuantity(code) + 1);
   refreshProductSelections();
@@ -981,6 +1017,13 @@ brandFilter.addEventListener("change", (event) => {
   state.brand = event.target.value;
   renderProducts();
 });
+
+if (statusFilter) {
+  statusFilter.addEventListener("change", (event) => {
+    state.status = event.target.value;
+    renderProducts();
+  });
+}
 
 if (sortFilter) {
   sortFilter.addEventListener("change", (event) => {
