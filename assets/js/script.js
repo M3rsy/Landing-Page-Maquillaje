@@ -4,6 +4,8 @@ const GENERAL_MESSAGE = "Hola, quiero más información sobre el catálogo de ma
 const OFFER_MESSAGE = "Hola, quiero reclamar el 10% de descuento en mi primera compra del catalogo JOYERIAJRV.";
 const WHOLESALE_MESSAGE = "Hola, quiero abrir codigo mayorista. Tengo L 2,000 en producto variado.";
 const AFFILIATE_MESSAGE = "Hola, me interesa unirme al Programa de Afiliadas Beauty de JOYERIAJRV. ¿Me pueden compartir el catálogo disponible?";
+const WHOLESALE_THRESHOLD = 2000;
+const MODAL_IMAGE_PLACEHOLDER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 const FEATURED_CODES = ["LQBL-PT", "DBJ-SET", "KC245123", "KC230005"];
 const SOLD_OUT_CODES = [];
 const PROMO_STORAGE_KEY = "jrvPromoShownDate";
@@ -484,8 +486,10 @@ const cartQuickWhatsapp = document.querySelector("#cartQuickWhatsapp");
 const cartDrawerWhatsapp = document.querySelector("#cartDrawerWhatsapp");
 const cartTotalLabel = document.querySelector("#cartTotalLabel");
 const cartRetailTotal = document.querySelector("#cartRetailTotal");
+const cartPricingNote = document.querySelector("#cartPricingNote");
 const clearCart = document.querySelector("#clearCart");
 const advisorForm = document.querySelector("#advisorForm");
+const backToTop = document.querySelector("#backToTop");
 
 const normalize = (value) =>
   value
@@ -570,6 +574,11 @@ const getCartUnits = () => getCartEntries().reduce((total, entry) => total + ent
 const getCartRetailTotal = () =>
   getCartEntries().reduce((total, entry) => total + parsePrice(entry.product.price) * entry.quantity, 0);
 
+const getCartWholesaleTotal = () =>
+  getCartEntries().reduce((total, entry) => total + parsePrice(entry.product.wholesale) * entry.quantity, 0);
+
+const isCartWholesaleEligible = () => getCartRetailTotal() >= WHOLESALE_THRESHOLD;
+
 function setGeneralWhatsappLinks() {
   document.querySelectorAll("[data-whatsapp-general]").forEach((link) => {
     link.href = whatsappLink(GENERAL_MESSAGE);
@@ -617,7 +626,7 @@ function startCountdown() {
   }
 
   updateCountdown();
-  window.setInterval(updateCountdown, 1000);
+  globalThis.setInterval(updateCountdown, 1000);
 }
 
 function todayKey() {
@@ -651,22 +660,48 @@ function syncBodyScrollLock() {
   document.body.style.overflow = locked ? "hidden" : "";
 }
 
+function resetDialogState(dialogElement) {
+  if (!dialogElement) return;
+
+  dialogElement.classList.add("hidden");
+  dialogElement.classList.remove("flex");
+  syncBodyScrollLock();
+}
+
+function openDialog(dialogElement, focusTarget) {
+  if (!dialogElement) return;
+
+  dialogElement.classList.remove("hidden");
+  dialogElement.classList.add("flex");
+
+  if (typeof dialogElement.showModal === "function" && !dialogElement.open) {
+    dialogElement.showModal();
+  }
+
+  syncBodyScrollLock();
+  focusTarget?.focus();
+}
+
+function closeDialog(dialogElement) {
+  if (!dialogElement) return;
+
+  if (typeof dialogElement.close === "function" && dialogElement.open) {
+    dialogElement.close();
+    return;
+  }
+
+  resetDialogState(dialogElement);
+}
+
 function openPromoPopup() {
   if (!promoPopup) return;
 
-  promoPopup.classList.remove("hidden");
-  promoPopup.classList.add("flex");
   markPromoShown();
-  syncBodyScrollLock();
-  closePromoPopup?.focus();
+  openDialog(promoPopup, closePromoPopup);
 }
 
 function closePromo() {
-  if (!promoPopup) return;
-
-  promoPopup.classList.add("hidden");
-  promoPopup.classList.remove("flex");
-  syncBodyScrollLock();
+  closeDialog(promoPopup);
 }
 
 function buildFilters() {
@@ -835,19 +870,14 @@ function openImageModal({ image, title, fallbackImage }) {
   modalImage.dataset.fallbackImage = fallbackImage || "";
   modalTitle.textContent = title;
   modalWhatsapp.href = productWhatsappLink(title);
-  imageModal.classList.remove("hidden");
-  imageModal.classList.add("flex");
-  syncBodyScrollLock();
-  closeImageModal.focus();
+  openDialog(imageModal, closeImageModal);
 }
 
 function closeModal() {
   if (!imageModal || !modalImage) return;
 
-  imageModal.classList.add("hidden");
-  imageModal.classList.remove("flex");
-  modalImage.src = "";
-  syncBodyScrollLock();
+  modalImage.src = MODAL_IMAGE_PLACEHOLDER;
+  closeDialog(imageModal);
 }
 
 function buildCartMessage() {
@@ -857,14 +887,37 @@ function buildCartMessage() {
     return GENERAL_MESSAGE;
   }
 
+  const wholesaleApplies = isCartWholesaleEligible();
   const lines = entries
     .map(
-      ({ product, quantity }) =>
-        `- ${quantity} x ${product.code} ${product.name} (${product.price} detalle / ${product.wholesale} mayoreo)`
+      ({ product, quantity }) => {
+        const unitPrice = wholesaleApplies ? product.wholesale : product.price;
+        const priceLabel = wholesaleApplies ? "mayoreo" : "detalle";
+        return `- ${quantity} x ${product.code} ${product.name} (${unitPrice} ${priceLabel})`;
+      }
     )
     .join("\n");
 
-  return `Hola, quiero hacer este pedido:\n${lines}\n\nTotal detalle aproximado: ${formatLempiras(getCartRetailTotal())}\nQuiero confirmar disponibilidad.`;
+  if (wholesaleApplies) {
+    return [
+      `Hola, quiero hacer este pedido:`,
+      lines,
+      "",
+      `Mayoreo aplicado automáticamente por pedido desde L 2,000 en producto variado.`,
+      `Total mayoreo aproximado: ${formatLempiras(getCartWholesaleTotal())}`,
+      `Total detalle referencial: ${formatLempiras(getCartRetailTotal())}`,
+      "Quiero confirmar disponibilidad."
+    ].join("\n");
+  }
+
+  return [
+    `Hola, quiero hacer este pedido:`,
+    lines,
+    "",
+    `Total detalle aproximado: ${formatLempiras(getCartRetailTotal())}`,
+    `Mayoreo automático disponible desde ${formatLempiras(WHOLESALE_THRESHOLD)} en producto variado.`,
+    "Quiero confirmar disponibilidad."
+  ].join("\n");
 }
 
 function buildAdvisorMessage(form) {
@@ -889,7 +942,7 @@ function submitAdvisorForm(event) {
   event.preventDefault();
   const form = event.currentTarget;
   const message = buildAdvisorMessage(form);
-  window.open(whatsappLink(message), "_blank", "noopener");
+  globalThis.open(whatsappLink(message), "_blank", "noopener");
 
   const feedback = document.querySelector("#advisorFeedback");
   if (feedback) {
@@ -907,7 +960,10 @@ function refreshProductSelections() {
 function renderCart() {
   const entries = getCartEntries();
   const units = getCartUnits();
-  const total = getCartRetailTotal();
+  const retailTotal = getCartRetailTotal();
+  const wholesaleTotal = getCartWholesaleTotal();
+  const wholesaleApplies = units > 0 && retailTotal >= WHOLESALE_THRESHOLD;
+  const total = wholesaleApplies ? wholesaleTotal : retailTotal;
   const messageUrl = whatsappLink(buildCartMessage());
   const plural = units === 1 ? "producto" : "productos";
 
@@ -916,7 +972,9 @@ function renderCart() {
   }
 
   if (cartSummary) {
-    cartSummary.textContent = `${units} ${plural} en pedido`;
+    cartSummary.textContent = wholesaleApplies
+      ? `${units} ${plural} en pedido · Mayoreo aplicado`
+      : `${units} ${plural} en pedido`;
   }
 
   if (cartQuickWhatsapp) {
@@ -928,11 +986,20 @@ function renderCart() {
   }
 
   if (cartTotalLabel) {
-    cartTotalLabel.textContent = `${units} ${plural} seleccionados`;
+    cartTotalLabel.textContent = wholesaleApplies
+      ? `Total mayoreo aplicado`
+      : `${units} ${plural} seleccionados`;
   }
 
   if (cartRetailTotal) {
     cartRetailTotal.textContent = formatLempiras(total);
+  }
+
+  if (cartPricingNote) {
+    cartPricingNote.hidden = units === 0;
+    cartPricingNote.textContent = wholesaleApplies
+      ? `Mayoreo aplicado automáticamente por pedido desde ${formatLempiras(WHOLESALE_THRESHOLD)} en producto variado. Total detalle referencial: ${formatLempiras(retailTotal)}.`
+      : `Mayoreo automático disponible desde ${formatLempiras(WHOLESALE_THRESHOLD)} en producto variado.`;
   }
 
   if (!cartItems) return;
@@ -940,21 +1007,25 @@ function renderCart() {
   cartItems.innerHTML = entries.length
     ? entries
         .map(
-          ({ product, quantity }) => `
-            <article class="cart-item">
-              <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy" decoding="async" />
-              <div>
-                <strong>${escapeHtml(product.name)}</strong>
-                <span>${escapeHtml(product.code)} · ${escapeHtml(product.price)}</span>
-                <div class="cart-item-actions">
-                  <button type="button" data-cart-decrease="${escapeHtml(product.code)}" aria-label="Restar ${escapeHtml(product.name)}">−</button>
-                  <span>${quantity}</span>
-                  <button type="button" data-cart-increase="${escapeHtml(product.code)}" aria-label="Sumar ${escapeHtml(product.name)}">+</button>
-                  <button type="button" data-cart-remove="${escapeHtml(product.code)}">Quitar</button>
+          ({ product, quantity }) => {
+            const unitPrice = wholesaleApplies ? product.wholesale : product.price;
+            const priceLabel = wholesaleApplies ? "mayoreo" : "detalle";
+            return `
+              <article class="cart-item">
+                <img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" loading="lazy" decoding="async" />
+                <div>
+                  <strong>${escapeHtml(product.name)}</strong>
+                  <span>${escapeHtml(product.code)} · ${escapeHtml(unitPrice)} ${priceLabel}</span>
+                  <div class="cart-item-actions">
+                    <button type="button" data-cart-decrease="${escapeHtml(product.code)}" aria-label="Restar ${escapeHtml(product.name)}">−</button>
+                    <span>${quantity}</span>
+                    <button type="button" data-cart-increase="${escapeHtml(product.code)}" aria-label="Sumar ${escapeHtml(product.name)}">+</button>
+                    <button type="button" data-cart-remove="${escapeHtml(product.code)}">Quitar</button>
+                  </div>
                 </div>
-              </div>
-            </article>
-          `
+              </article>
+            `;
+          }
         )
         .join("")
     : `<p class="cart-empty">Tu pedido está vacío.</p>`;
@@ -997,18 +1068,24 @@ function clearCartItems() {
 function openCartDrawer() {
   if (!cartDrawer) return;
 
-  cartDrawer.classList.remove("hidden");
-  cartDrawer.classList.add("flex");
-  syncBodyScrollLock();
-  closeCart?.focus();
+  openDialog(cartDrawer, closeCart);
 }
 
 function closeCartDrawer() {
-  if (!cartDrawer) return;
+  closeDialog(cartDrawer);
+}
 
-  cartDrawer.classList.add("hidden");
-  cartDrawer.classList.remove("flex");
-  syncBodyScrollLock();
+function toggleBackToTop() {
+  if (!backToTop) return;
+
+  backToTop.classList.toggle("hidden", globalThis.scrollY < 520);
+}
+
+function scrollToPageTop() {
+  globalThis.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
 function handleProductClick(event) {
@@ -1093,6 +1170,10 @@ if (closeCart) {
 }
 
 if (cartDrawer) {
+  cartDrawer.addEventListener("close", () => {
+    resetDialogState(cartDrawer);
+  });
+
   cartDrawer.addEventListener("click", (event) => {
     if (event.target === cartDrawer) {
       closeCartDrawer();
@@ -1108,11 +1189,21 @@ if (advisorForm) {
   advisorForm.addEventListener("submit", submitAdvisorForm);
 }
 
+if (backToTop) {
+  backToTop.addEventListener("click", scrollToPageTop);
+  globalThis.addEventListener("scroll", toggleBackToTop, { passive: true });
+}
+
 if (closeImageModal) {
   closeImageModal.addEventListener("click", closeModal);
 }
 
 if (imageModal) {
+  imageModal.addEventListener("close", () => {
+    if (modalImage) modalImage.src = MODAL_IMAGE_PLACEHOLDER;
+    resetDialogState(imageModal);
+  });
+
   imageModal.addEventListener("click", (event) => {
     if (event.target === imageModal) {
       closeModal();
@@ -1125,6 +1216,10 @@ if (closePromoPopup) {
 }
 
 if (promoPopup) {
+  promoPopup.addEventListener("close", () => {
+    resetDialogState(promoPopup);
+  });
+
   promoPopup.addEventListener("click", (event) => {
     if (event.target === promoPopup) {
       closePromo();
@@ -1171,7 +1266,8 @@ buildFilters();
 renderFeaturedProducts();
 renderProducts();
 renderCart();
-window.setTimeout(() => {
+toggleBackToTop();
+globalThis.setTimeout(() => {
   if (shouldShowPromoPopup()) {
     openPromoPopup();
   }

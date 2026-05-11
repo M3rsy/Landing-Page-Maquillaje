@@ -18,32 +18,10 @@
     <meta property="og:image:alt" content="Producto destacado de maquillaje JOYERIA JRV" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="robots" content="index, follow" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <link rel="icon" href="assets/logo-jrv.svg" type="image/svg+xml" />
     <link rel="preload" as="image" href="assets/optimized/hero.webp" type="image/webp" />
-    <link rel="stylesheet" href="styles.css" />
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X60PS8H36Q"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-X60PS8H36Q');
-    </script>
-
-    <!--
-      ═══════════════════════════════════════════════════════════════
-      META PIXEL — cómo activarlo:
-      1. Ve a https://business.facebook.com > Administrador de eventos.
-      2. Crea un pixel o usa uno existente. Copia el ID numérico.
-      3. Clic en "Configurar" > "Instalar código manualmente".
-      4. Pega aquí abajo el bloque <script> del Pixel Base.
-      5. El bloque <noscript> va en la línea marcada más abajo en el <body>.
-      ═══════════════════════════════════════════════════════════════
-    -->
-
-    <!-- Hotjar (opcional): ve a https://www.hotjar.com, crea un sitio,
-         y pega el script de seguimiento aquí si decides usarlo. -->
+    <link rel="stylesheet" href="assets/css/styles.css" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -59,15 +37,12 @@
         ]
       }
     </script>
-    <script src="script.js" defer></script>
+    <script src="assets/js/script.js" defer></script>
   </head>
   <body>
-    <!-- Meta Pixel <noscript>: pega aquí el bloque que Meta te da en el paso 4 de instalación.
-         Ejemplo: <noscript><img height="1" width="1" style="display:none"
-         src="https://www.facebook.com/tr?id=TU_PIXEL_ID&ev=PageView&noscript=1"/></noscript> -->
     <a class="skip-link" href="#catalogo">Saltar al catálogo</a>
     <header class="site-header">
-      <a class="brand" href="#inicio" aria-label="Ir al inicio">
+      <a class="brand" href="#inicio" aria-label="JOYERIA JRV, ir al inicio">
         <span class="brand-mark">JRV</span>
         <span>JOYERIA JRV</span>
       </a>
@@ -76,9 +51,11 @@
         <a href="#destacados">Destacados</a>
         <a href="#ofertas">Ofertas</a>
         <a href="#catalogo">Catálogo</a>
+        <a href="#nosotros">Nosotros</a>
+        <a href="#pagos">Pagos</a>
         <a href="#afiliadas">Afiliadas</a>
         <a href="#dudas">Dudas</a>
-        <a href="catalogo_maquillaje_premium_3.pdf" target="_blank" rel="noopener noreferrer">PDF</a>
+        <a href="assets/docs/catalogo_maquillaje_premium_3.pdf" target="_blank" rel="noopener noreferrer">PDF</a>
         <a href="https://www.facebook.com/profile.php?id=61578261711532" target="_blank" rel="noopener noreferrer">Facebook</a>
         <a href="https://www.instagram.com/JOYERIAJRV" target="_blank" rel="noopener noreferrer">@JOYERIAJRV</a>
       </nav>
@@ -101,7 +78,7 @@
             <a class="btn btn-primary" href="#catalogo">Comprar ahora</a>
             <a class="btn btn-secondary" data-whatsapp-wholesale target="_blank" rel="noopener noreferrer">Abrir código mayorista</a>
           </div>
-          <a class="scroll-cue" href="#destacados" aria-label="Ir a productos destacados">Ver destacados ↓</a>
+          <a class="scroll-cue" href="#destacados">Ver destacados ↓</a>
 
           <aside class="flash-offer" aria-label="Oferta relámpago">
             <div>
@@ -207,6 +184,32 @@
           <article>
             <strong>WhatsApp</strong>
             <span>canal directo para confirmar disponibilidad.</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="about-section" id="nosotros" aria-labelledby="aboutTitle">
+        <div class="about-copy">
+          <p class="eyebrow">Acerca de nosotros</p>
+          <h2 id="aboutTitle">Compra maquillaje con atención directa y segura</h2>
+          <p>
+            En JOYERIA JRV atendemos cada pedido por WhatsApp para confirmar disponibilidad, precios y opciones de
+            mayoreo antes de cerrar la compra. Nuestro objetivo es que compres con claridad, ya sea para uso personal
+            o para surtir tu negocio.
+          </p>
+        </div>
+        <div class="about-grid" aria-label="Compromisos de JOYERIA JRV">
+          <article>
+            <strong>Confirmación antes de pagar</strong>
+            <span>Revisamos disponibilidad y total del pedido antes de indicarte el método de pago.</span>
+          </article>
+          <article>
+            <strong>Precios claros</strong>
+            <span>Mostramos precio de detalle y mayoreo para que puedas comparar y comprar con confianza.</span>
+          </article>
+          <article>
+            <strong>Envío después de revisión</strong>
+            <span>Cuando el pago se revisa y confirma, preparamos la guía para proceder con el envío.</span>
           </article>
         </div>
       </section>
@@ -338,6 +341,63 @@
         </form>
       </section>
 
+      <section class="payment-section" id="pagos" aria-labelledby="paymentTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Métodos de pago</p>
+            <h2 id="paymentTitle">Paga fácil y confirma tu envío</h2>
+          </div>
+        </div>
+        <div class="payment-layout">
+          <div class="payment-copy">
+            <article>
+              <span aria-hidden="true">1</span>
+              <div>
+                <strong>Tarjeta de crédito o débito</strong>
+                <p>Aceptamos pagos por link con Mastercard y Visa.</p>
+              </div>
+            </article>
+            <article>
+              <span aria-hidden="true">2</span>
+              <div>
+                <strong>Transferencia bancaria</strong>
+                <p>También puedes pagar por transferencia a las cuentas indicadas.</p>
+              </div>
+            </article>
+            <article>
+              <span aria-hidden="true">3</span>
+              <div>
+                <strong>Comprobante y guía</strong>
+                <p>Envía el comprobante por WhatsApp. Revisamos la transferencia y, al confirmarse, realizamos la guía.</p>
+              </div>
+            </article>
+          </div>
+          <article class="payment-bank-card" aria-label="Datos de transferencia bancaria">
+            <h3>Cuentas para transferencia</h3>
+            <dl class="bank-list">
+              <div>
+                <dt>BAC</dt>
+                <dd>746144571</dd>
+              </div>
+              <div>
+                <dt>BANPAIS</dt>
+                <dd>210160002567</dd>
+              </div>
+              <div>
+                <dt>Banco de Occidente</dt>
+                <dd>21-265-007351-3</dd>
+              </div>
+              <div>
+                <dt>Banco Atlántida</dt>
+                <dd>24320181456</dd>
+              </div>
+            </dl>
+            <p><strong>Propietario:</strong> Gian Carlo Holmes Ortez Torres</p>
+            <p class="payment-note">Enviar comprobante de pago por WhatsApp al +504 8804-5356.</p>
+          </article>
+        </div>
+      </section>
+
       <section class="faq-section" id="dudas">
         <div class="section-heading">
           <div>
@@ -370,6 +430,10 @@
       <span class="whatsapp-glyph" aria-hidden="true"></span>
     </a>
 
+    <button class="back-to-top hidden" id="backToTop" type="button" aria-label="Volver al inicio">
+      <span aria-hidden="true">↑</span>
+    </button>
+
     <div id="cartBar" class="cart-bar hidden" aria-live="polite">
       <span id="cartSummary">0 productos en pedido</span>
       <div class="cart-bar-actions">
@@ -378,7 +442,7 @@
       </div>
     </div>
 
-    <div id="cartDrawer" class="cart-drawer hidden" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+    <dialog id="cartDrawer" class="cart-drawer hidden" aria-labelledby="cartTitle">
       <div class="cart-panel">
         <button class="modal-close" id="closeCart" type="button" aria-label="Cerrar pedido">&times;</button>
         <h2 id="cartTitle">Tu pedido</h2>
@@ -387,12 +451,13 @@
           <span id="cartTotalLabel">0 productos seleccionados</span>
           <strong id="cartRetailTotal">L 0.00</strong>
         </div>
+        <p id="cartPricingNote" class="cart-pricing-note" hidden></p>
         <a class="btn btn-primary" id="cartDrawerWhatsapp" target="_blank" rel="noopener noreferrer">Enviar pedido por WhatsApp</a>
         <button class="btn btn-secondary" id="clearCart" type="button">Vaciar pedido</button>
       </div>
-    </div>
+    </dialog>
 
-    <div id="promoPopup" class="promo-popup hidden" role="dialog" aria-modal="true" aria-labelledby="promoTitle">
+    <dialog id="promoPopup" class="promo-popup hidden" aria-labelledby="promoTitle">
       <div class="promo-card">
         <button class="modal-close" id="closePromoPopup" type="button" aria-label="Cerrar oferta">&times;</button>
         <p class="offer-kicker">Oferta relámpago</p>
@@ -410,18 +475,18 @@
           <a class="btn btn-secondary" data-whatsapp-wholesale target="_blank" rel="noopener noreferrer">Abrir código mayorista</a>
         </div>
       </div>
-    </div>
+    </dialog>
 
-    <div id="imageModal" class="image-modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <dialog id="imageModal" class="image-modal hidden" aria-labelledby="modalTitle">
       <div class="image-modal-content">
         <button class="modal-close" id="closeImageModal" type="button" aria-label="Cerrar imagen">&times;</button>
-        <img id="modalImage" src="" alt="" />
+        <img id="modalImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="Producto seleccionado" />
         <div class="image-modal-footer">
-          <h2 id="modalTitle"></h2>
+          <h2 id="modalTitle">Producto seleccionado</h2>
           <a id="modalWhatsapp" class="product-whatsapp" target="_blank" rel="noopener noreferrer">Pedir por WhatsApp</a>
         </div>
       </div>
-    </div>
+    </dialog>
 
     <footer class="site-footer">
       <div>

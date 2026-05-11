@@ -187,18 +187,18 @@ textarea:focus-visible {
   align-items: center;
   background-image:
     linear-gradient(90deg, rgba(42, 21, 27, 0.76) 0%, rgba(42, 21, 27, 0.42) 42%, rgba(42, 21, 27, 0.08) 100%),
-    url("FOTOS MAQUILLAJE/00a09aaa-7e64-47aa-8830-2d2dcf732575.png");
+    url("../../FOTOS MAQUILLAJE/00a09aaa-7e64-47aa-8830-2d2dcf732575.png");
   background-image:
     linear-gradient(90deg, rgba(42, 21, 27, 0.76) 0%, rgba(42, 21, 27, 0.42) 42%, rgba(42, 21, 27, 0.08) 100%),
     -webkit-image-set(
-      url("assets/optimized/hero.webp") 1x,
-      url("FOTOS MAQUILLAJE/00a09aaa-7e64-47aa-8830-2d2dcf732575.png") 1x
+      url("../optimized/hero.webp") 1x,
+      url("../../FOTOS MAQUILLAJE/00a09aaa-7e64-47aa-8830-2d2dcf732575.png") 1x
     );
   background-image:
     linear-gradient(90deg, rgba(42, 21, 27, 0.76) 0%, rgba(42, 21, 27, 0.42) 42%, rgba(42, 21, 27, 0.08) 100%),
     image-set(
-      url("assets/optimized/hero.webp") type("image/webp"),
-      url("FOTOS MAQUILLAJE/00a09aaa-7e64-47aa-8830-2d2dcf732575.png") type("image/png")
+      url("../optimized/hero.webp") type("image/webp"),
+      url("../../FOTOS MAQUILLAJE/00a09aaa-7e64-47aa-8830-2d2dcf732575.png") type("image/png")
     );
   background-position: center;
   background-size: cover;
@@ -359,6 +359,8 @@ textarea:focus-visible {
 .featured-section,
 .steps-section,
 .social-proof-section,
+.about-section,
+.payment-section,
 .advisor-section,
 .faq-section,
 .conversion-section {
@@ -420,6 +422,8 @@ textarea:focus-visible {
 .conversion-section,
 .steps-section,
 .social-proof-section,
+.about-section,
+.payment-section,
 .advisor-section,
 .faq-section {
   content-visibility: auto;
@@ -535,6 +539,161 @@ textarea:focus-visible {
 .proof-grid strong {
   color: var(--green);
   font-size: 1.8rem;
+}
+
+.about-section,
+.payment-section {
+  scroll-margin-top: 110px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.about-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.about-copy,
+.about-grid article,
+.payment-copy article,
+.payment-bank-card {
+  border: 1px solid rgba(234, 212, 218, 0.9);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgba(65, 18, 33, 0.06);
+}
+
+.about-copy {
+  padding: 1.25rem;
+}
+
+.about-copy h2,
+.payment-section h2 {
+  margin: 0;
+  color: var(--rose-dark);
+  font-size: 2rem;
+  line-height: 1.08;
+}
+
+.about-copy p {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.about-grid article {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1rem;
+}
+
+.about-grid strong,
+.payment-copy strong {
+  color: var(--rose-dark);
+  line-height: 1.2;
+}
+
+.about-grid span,
+.payment-copy p,
+.payment-bank-card p,
+.bank-list dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.payment-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 1rem;
+  align-items: start;
+}
+
+.payment-copy {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.payment-copy article {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+  min-height: 104px;
+  padding: 1rem;
+}
+
+.payment-copy article > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  font-weight: 900;
+}
+
+.payment-copy p {
+  margin-top: 0.3rem;
+}
+
+.payment-bank-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fffafa;
+}
+
+.payment-bank-card h3 {
+  margin: 0;
+  color: var(--rose-dark);
+  font-size: 1.25rem;
+  line-height: 1.15;
+}
+
+.bank-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.bank-list div {
+  display: grid;
+  gap: 0.1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.bank-list div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.bank-list dt {
+  color: var(--rose-dark);
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bank-list dd {
+  font-weight: 800;
+}
+
+.payment-note {
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #edf8f4;
+  color: var(--green) !important;
+  font-weight: 800;
 }
 
 .advisor-section {
@@ -928,6 +1087,30 @@ textarea:focus-visible {
   height: 2rem;
 }
 
+.back-to-top {
+  position: fixed;
+  right: 1.2rem;
+  bottom: 12rem;
+  z-index: 30;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--rose-dark);
+  color: #fff;
+  box-shadow: 0 16px 34px rgba(65, 18, 33, 0.28);
+  cursor: pointer;
+  font-size: 1.45rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.back-to-top:hover {
+  transform: translateY(-2px);
+}
+
 .hidden,
 #imageModal.hidden,
 #promoPopup.hidden,
@@ -943,10 +1126,22 @@ textarea:focus-visible {
   z-index: 70;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
   padding: 1.2rem;
+  border: 0;
   background: rgba(42, 21, 27, 0.72);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
+}
+
+.image-modal::backdrop,
+.promo-popup::backdrop,
+.cart-drawer::backdrop {
+  background: transparent;
 }
 
 #imageModal.flex,
@@ -1164,6 +1359,16 @@ textarea:focus-visible {
 .cart-total strong {
   color: var(--rose);
   font-size: 1.25rem;
+}
+
+.cart-pricing-note {
+  margin: -0.25rem 0 0;
+  padding: 0.7rem 0.8rem;
+  border-radius: 8px;
+  background: #edf8f4;
+  color: var(--green);
+  font-size: 0.86rem;
+  font-weight: 800;
 }
 
 .cart-empty {
@@ -1394,6 +1599,8 @@ textarea:focus-visible {
   }
 
   .offer-panel,
+  .about-section,
+  .payment-layout,
   .advisor-section {
     grid-template-columns: 1fr;
   }
@@ -1488,6 +1695,8 @@ textarea:focus-visible {
   .featured-section,
   .steps-section,
   .social-proof-section,
+  .about-section,
+  .payment-section,
   .advisor-section,
   .faq-section,
   .conversion-section {
@@ -1498,6 +1707,7 @@ textarea:focus-visible {
   .trust-strip,
   .featured-grid,
   .steps-grid,
+  .about-grid,
   .proof-grid,
   .faq-grid,
   .advisor-form {
@@ -1505,6 +1715,8 @@ textarea:focus-visible {
   }
 
   .offer-panel h2,
+  .about-copy h2,
+  .payment-section h2,
   .advisor-copy h2 {
     font-size: 1.65rem;
   }
@@ -1546,6 +1758,10 @@ textarea:focus-visible {
     grid-template-columns: 1fr;
   }
 
+  .payment-copy article {
+    grid-template-columns: 1fr;
+  }
+
   .cart-item {
     grid-template-columns: 58px minmax(0, 1fr);
   }
@@ -1566,5 +1782,10 @@ textarea:focus-visible {
   .floating-whatsapp {
     right: 0.9rem;
     bottom: 8.6rem;
+  }
+
+  .back-to-top {
+    right: 0.9rem;
+    bottom: 15.8rem;
   }
 }
