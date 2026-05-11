@@ -472,6 +472,7 @@ const imageModal = document.querySelector("#imageModal");
 const modalImage = document.querySelector("#modalImage");
 const modalTitle = document.querySelector("#modalTitle");
 const modalWhatsapp = document.querySelector("#modalWhatsapp");
+const modalShare = document.querySelector("#modalShare");
 const closeImageModal = document.querySelector("#closeImageModal");
 const promoPopup = document.querySelector("#promoPopup");
 const closePromoPopup = document.querySelector("#closePromoPopup");
@@ -490,6 +491,7 @@ const cartPricingNote = document.querySelector("#cartPricingNote");
 const clearCart = document.querySelector("#clearCart");
 const advisorForm = document.querySelector("#advisorForm");
 const backToTop = document.querySelector("#backToTop");
+const shareFeedback = document.querySelector("#shareFeedback");
 
 const normalize = (value) =>
   value
@@ -528,6 +530,21 @@ const productWhatsappLink = (productName) =>
 const getProductByCode = (code) => products.find((product) => product.code === code);
 
 const getOptimizedProductImage = (product) => `assets/optimized/productos/${product.code}.webp`;
+
+const getProductAnchorId = (product) => `producto-${normalize(product.code).replace(/[^a-z0-9]+/g, "-")}`;
+
+function getProductShareUrl(product) {
+  const url = new URL(globalThis.location.href);
+  url.search = "";
+  url.hash = getProductAnchorId(product);
+  return url.toString();
+}
+
+function getProductFromHash() {
+  const hash = globalThis.location.hash.replace("#", "");
+  if (!hash) return null;
+  return products.find((product) => getProductAnchorId(product) === hash) || null;
+}
 
 const isProductHot = (product) => product.hot === true || FEATURED_CODES.includes(product.code);
 
@@ -770,12 +787,15 @@ function renderProductCard(product, options = {}) {
   const imageSrc = getOptimizedProductImage(product);
   const imageLoading = options.eager ? "eager" : "lazy";
   const imagePriority = options.eager ? ' fetchpriority="high"' : "";
+  const productAnchorId = getProductAnchorId(product);
+  const cardId = options.compact ? "" : ` id="${escapeHtml(productAnchorId)}" tabindex="-1"`;
 
   return `
-    <article class="product-card ${options.compact ? "product-card-compact" : ""}">
+    <article class="product-card ${options.compact ? "product-card-compact" : ""}"${cardId}>
       <button
         class="product-media"
         type="button"
+        data-product-code="${escapeHtml(product.code)}"
         data-image="${escapeHtml(imageSrc)}"
         data-fallback-image="${escapeHtml(product.image)}"
         data-title="${escapeHtml(product.name)}"
@@ -815,8 +835,18 @@ function renderProductCard(product, options = {}) {
             ${isSoldOut ? "Agotado" : quantity ? `Agregado (${quantity})` : "Agregar al pedido"}
           </button>
           <a class="product-whatsapp" href="${productWhatsappLink(product.name)}" target="_blank" rel="noreferrer">
+            <span class="whatsapp-glyph" aria-hidden="true"></span>
             WhatsApp
           </a>
+          <button
+            class="product-share-button"
+            type="button"
+            data-share-product="${escapeHtml(product.code)}"
+            aria-label="Compartir ${escapeHtml(product.name)}"
+          >
+            <svg class="button-icon" aria-hidden="true"><use href="#icon-share"></use></svg>
+            Compartir
+          </button>
         </div>
       </div>
     </article>
@@ -850,19 +880,11 @@ function renderProducts() {
 }
 
 function resetFilters() {
-  state.search = "";
-  state.category = "Todos";
-  state.brand = "Todas";
-  state.status = "all";
-  state.sort = "featured";
-  searchInput.value = "";
-  brandFilter.value = "Todas";
-  if (statusFilter) statusFilter.value = "all";
-  if (sortFilter) sortFilter.value = "featured";
+  resetCatalogFilters();
   renderProducts();
 }
 
-function openImageModal({ image, title, fallbackImage }) {
+function openImageModal({ image, title, fallbackImage, productCode }) {
   if (!imageModal || !modalImage || !modalTitle || !modalWhatsapp || !closeImageModal) return;
 
   modalImage.src = image;
@@ -870,6 +892,9 @@ function openImageModal({ image, title, fallbackImage }) {
   modalImage.dataset.fallbackImage = fallbackImage || "";
   modalTitle.textContent = title;
   modalWhatsapp.href = productWhatsappLink(title);
+  if (modalShare) {
+    modalShare.dataset.shareProduct = productCode || "";
+  }
   openDialog(imageModal, closeImageModal);
 }
 
@@ -1088,7 +1113,87 @@ function scrollToPageTop() {
   });
 }
 
+function showShareFeedback(message) {
+  if (!shareFeedback) return;
+
+  shareFeedback.textContent = message;
+  shareFeedback.classList.remove("hidden");
+  globalThis.setTimeout(() => {
+    shareFeedback.classList.add("hidden");
+  }, 3600);
+}
+
+async function shareProduct(code) {
+  const product = getProductByCode(code);
+  if (!product) return;
+
+  const url = getProductShareUrl(product);
+  const shareData = {
+    title: `${product.name} | JOYERIA JRV`,
+    text: `Mira este producto del catálogo JOYERIA JRV: ${product.name}`,
+    url
+  };
+
+  try {
+    if (globalThis.navigator?.share) {
+      await globalThis.navigator.share(shareData);
+      return;
+    }
+
+    if (globalThis.navigator?.clipboard?.writeText) {
+      await globalThis.navigator.clipboard.writeText(url);
+      showShareFeedback("Link del producto copiado.");
+      return;
+    }
+
+    showShareFeedback(`Link del producto: ${url}`);
+  } catch (error) {
+    if (error?.name !== "AbortError") {
+      showShareFeedback(`Link del producto: ${url}`);
+    }
+  }
+}
+
+function resetCatalogFilters() {
+  state.search = "";
+  state.category = "Todos";
+  state.brand = "Todas";
+  state.status = "all";
+  state.sort = "featured";
+  searchInput.value = "";
+  brandFilter.value = "Todas";
+  if (statusFilter) statusFilter.value = "all";
+  if (sortFilter) sortFilter.value = "featured";
+}
+
+function revealProductFromHash() {
+  const product = getProductFromHash();
+  if (!product) return;
+
+  resetCatalogFilters();
+  renderProducts();
+
+  const target = document.getElementById(getProductAnchorId(product));
+  if (!target) return;
+
+  target.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+  target.focus({ preventScroll: true });
+  target.classList.add("is-shared-target");
+  globalThis.setTimeout(() => {
+    target.classList.remove("is-shared-target");
+  }, 2600);
+}
+
 function handleProductClick(event) {
+  const shareButton = event.target.closest("[data-share-product]");
+  if (shareButton) {
+    shareProduct(shareButton.dataset.shareProduct);
+    return;
+  }
+
   const cartButton = event.target.closest("[data-cart-add]");
   if (cartButton) {
     addToCart(cartButton.dataset.cartAdd);
@@ -1101,7 +1206,8 @@ function handleProductClick(event) {
   openImageModal({
     image: mediaButton.dataset.image,
     fallbackImage: mediaButton.dataset.fallbackImage,
-    title: mediaButton.dataset.title
+    title: mediaButton.dataset.title,
+    productCode: mediaButton.dataset.productCode
   });
 }
 
@@ -1194,6 +1300,14 @@ if (backToTop) {
   globalThis.addEventListener("scroll", toggleBackToTop, { passive: true });
 }
 
+if (modalShare) {
+  modalShare.addEventListener("click", () => {
+    shareProduct(modalShare.dataset.shareProduct);
+  });
+}
+
+globalThis.addEventListener("hashchange", revealProductFromHash);
+
 if (closeImageModal) {
   closeImageModal.addEventListener("click", closeModal);
 }
@@ -1267,6 +1381,7 @@ renderFeaturedProducts();
 renderProducts();
 renderCart();
 toggleBackToTop();
+revealProductFromHash();
 globalThis.setTimeout(() => {
   if (shouldShowPromoPopup()) {
     openPromoPopup();

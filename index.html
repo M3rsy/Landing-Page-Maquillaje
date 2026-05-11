@@ -434,6 +434,8 @@
       <span aria-hidden="true">↑</span>
     </button>
 
+    <p id="shareFeedback" class="share-feedback hidden" aria-live="polite"></p>
+
     <div id="cartBar" class="cart-bar hidden" aria-live="polite">
       <span id="cartSummary">0 productos en pedido</span>
       <div class="cart-bar-actions">
@@ -483,6 +485,10 @@
         <img id="modalImage" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="Producto seleccionado" />
         <div class="image-modal-footer">
           <h2 id="modalTitle">Producto seleccionado</h2>
+          <button id="modalShare" class="product-share-button" type="button">
+            <svg class="button-icon" aria-hidden="true"><use href="#icon-share"></use></svg>
+            Compartir producto
+          </button>
           <a id="modalWhatsapp" class="product-whatsapp" target="_blank" rel="noopener noreferrer">Pedir por WhatsApp</a>
         </div>
       </div>
