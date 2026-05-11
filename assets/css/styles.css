@@ -1123,7 +1123,7 @@ textarea:focus-visible {
 
 .product-actions {
   display: grid;
-  grid-template-columns: minmax(118px, 1.1fr) minmax(118px, 1fr) 48px;
+  grid-template-columns: minmax(0, 1fr) 56px 56px;
   gap: 0.55rem;
   align-items: stretch;
 }
@@ -1142,14 +1142,14 @@ textarea:focus-visible {
 
 .product-whatsapp {
   margin-top: 0;
-  padding: 0 0.9rem;
+  aspect-ratio: 1;
+  padding: 0;
   font-weight: 900;
-  white-space: nowrap;
 }
 
 .product-whatsapp .whatsapp-glyph {
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
 .cart-product-button {
@@ -1169,12 +1169,8 @@ textarea:focus-visible {
 }
 
 .product-share-button .button-icon {
-  width: 1.15rem;
-  height: 1.15rem;
-}
-
-.product-share-button:not(#modalShare) {
-  font-size: 0;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .cart-product-button.is-added {
@@ -1906,7 +1902,7 @@ textarea:focus-visible {
   }
 
   .product-actions {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 52px;
+    grid-template-columns: minmax(0, 1fr) 56px 56px;
     gap: 0.5rem;
   }
 

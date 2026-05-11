@@ -834,18 +834,24 @@ function renderProductCard(product, options = {}) {
           >
             ${isSoldOut ? "Agotado" : quantity ? `Agregado (${quantity})` : "Agregar al pedido"}
           </button>
-          <a class="product-whatsapp" href="${productWhatsappLink(product.name)}" target="_blank" rel="noreferrer">
+          <a
+            class="product-whatsapp"
+            href="${productWhatsappLink(product.name)}"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Pedir ${escapeHtml(product.name)} por WhatsApp"
+            title="Pedir por WhatsApp"
+          >
             <span class="whatsapp-glyph" aria-hidden="true"></span>
-            WhatsApp
           </a>
           <button
             class="product-share-button"
             type="button"
             data-share-product="${escapeHtml(product.code)}"
             aria-label="Compartir ${escapeHtml(product.name)}"
+            title="Compartir producto"
           >
             <svg class="button-icon" aria-hidden="true"><use href="#icon-share"></use></svg>
-            Compartir
           </button>
         </div>
       </div>
