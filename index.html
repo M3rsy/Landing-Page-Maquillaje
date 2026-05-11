@@ -40,6 +40,76 @@
     <script src="assets/js/script.js" defer></script>
   </head>
   <body>
+    <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <symbol id="icon-message" viewBox="0 0 24 24">
+        <path d="M21 11.5a8.38 8.38 0 0 1-9 8.46 8.5 8.5 0 0 1-4.28-1.33L3 20l1.38-4.05A8.5 8.5 0 1 1 21 11.5Z" />
+      </symbol>
+      <symbol id="icon-tag" viewBox="0 0 24 24">
+        <path d="M20.6 13.1 13.1 20.6a2 2 0 0 1-2.8 0L3 13.3V4h9.3l8.3 8.3a2 2 0 0 1 0 2.8Z" />
+        <path d="M7.5 7.5h.01" />
+      </symbol>
+      <symbol id="icon-badge" viewBox="0 0 24 24">
+        <path d="m8.5 13.5 2.2 2.2 4.8-5.4" />
+        <path d="M12 2.7 14.8 5l3.6.2.9 3.5 2.1 2.9-2.1 2.9-.9 3.5-3.6.2L12 21.3 9.2 19l-3.6-.2-.9-3.5-2.1-2.9 2.1-2.9.9-3.5L9.2 5 12 2.7Z" />
+      </symbol>
+      <symbol id="icon-image" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m3 16 5-5 4 4 3-3 6 6" />
+        <path d="M15 9h.01" />
+      </symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.6-3.6" />
+      </symbol>
+      <symbol id="icon-bag" viewBox="0 0 24 24">
+        <path d="M6 8h12l-1 13H7L6 8Z" />
+        <path d="M9 8a3 3 0 0 1 6 0" />
+      </symbol>
+      <symbol id="icon-send" viewBox="0 0 24 24">
+        <path d="m22 2-7 20-4-9-9-4 20-7Z" />
+        <path d="M22 2 11 13" />
+      </symbol>
+      <symbol id="icon-shield" viewBox="0 0 24 24">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+        <path d="m9 12 2 2 4-4" />
+      </symbol>
+      <symbol id="icon-truck" viewBox="0 0 24 24">
+        <path d="M3 6h12v10H3z" />
+        <path d="M15 9h4l2 3v4h-6V9Z" />
+        <circle cx="7" cy="18" r="2" />
+        <circle cx="18" cy="18" r="2" />
+      </symbol>
+      <symbol id="icon-card" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="M3 10h18" />
+        <path d="M7 15h4" />
+      </symbol>
+      <symbol id="icon-bank" viewBox="0 0 24 24">
+        <path d="M3 10h18L12 4 3 10Z" />
+        <path d="M5 10v8" />
+        <path d="M9 10v8" />
+        <path d="M15 10v8" />
+        <path d="M19 10v8" />
+        <path d="M3 18h18" />
+      </symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24">
+        <path d="m5 12 4 4L19 6" />
+      </symbol>
+      <symbol id="icon-heart" viewBox="0 0 24 24">
+        <path d="M20.8 4.6a5.3 5.3 0 0 0-7.5 0L12 5.9l-1.3-1.3a5.3 5.3 0 1 0-7.5 7.5L12 21l8.8-8.9a5.3 5.3 0 0 0 0-7.5Z" />
+      </symbol>
+      <symbol id="icon-quote" viewBox="0 0 24 24">
+        <path d="M9 7H5v6h4v4H5a4 4 0 0 1-4-4V9a4 4 0 0 1 4-4h4v2Z" />
+        <path d="M23 7h-4v6h4v4h-4a4 4 0 0 1-4-4V9a4 4 0 0 1 4-4h4v2Z" />
+      </symbol>
+      <symbol id="icon-share" viewBox="0 0 24 24">
+        <circle cx="18" cy="5" r="3" />
+        <circle cx="6" cy="12" r="3" />
+        <circle cx="18" cy="19" r="3" />
+        <path d="m8.6 10.6 6.8-4.2" />
+        <path d="m8.6 13.4 6.8 4.2" />
+      </symbol>
+    </svg>
     <a class="skip-link" href="#catalogo">Saltar al catálogo</a>
     <header class="site-header">
       <a class="brand" href="#inicio" aria-label="JOYERIA JRV, ir al inicio">
@@ -100,18 +170,22 @@
 
       <section class="trust-strip" aria-label="Beneficios de compra">
         <article>
+          <svg class="section-icon" aria-hidden="true"><use href="#icon-message"></use></svg>
           <strong>Pedido por WhatsApp</strong>
           <span>Atención directa para confirmar disponibilidad.</span>
         </article>
         <article>
+          <svg class="section-icon" aria-hidden="true"><use href="#icon-tag"></use></svg>
           <strong>Detalle y mayoreo</strong>
           <span>Precios visibles para compra personal o reventa.</span>
         </article>
         <article>
+          <svg class="section-icon" aria-hidden="true"><use href="#icon-badge"></use></svg>
           <strong>Código mayorista</strong>
           <span>Desde L 2,000 en producto variado.</span>
         </article>
         <article>
+          <svg class="section-icon" aria-hidden="true"><use href="#icon-image"></use></svg>
           <strong>Catálogo visual</strong>
           <span>Fotos, precios y filtros para comprar más rápido.</span>
         </article>
@@ -154,17 +228,17 @@
         </div>
         <div class="steps-grid">
           <article>
-            <span>1</span>
+            <span><svg class="step-icon" aria-hidden="true"><use href="#icon-search"></use></svg></span>
             <strong>Explora el catálogo</strong>
             <p>Filtra por marca, categoría o precio para encontrar rápido lo que necesitas.</p>
           </article>
           <article>
-            <span>2</span>
+            <span><svg class="step-icon" aria-hidden="true"><use href="#icon-bag"></use></svg></span>
             <strong>Agrega productos</strong>
             <p>Arma tu pedido con varios artículos antes de escribir por WhatsApp.</p>
           </article>
           <article>
-            <span>3</span>
+            <span><svg class="step-icon" aria-hidden="true"><use href="#icon-send"></use></svg></span>
             <strong>Confirma por WhatsApp</strong>
             <p>Enviamos disponibilidad, total y orientación para detalle o mayoreo.</p>
           </article>
@@ -200,18 +274,54 @@
         </div>
         <div class="about-grid" aria-label="Compromisos de JOYERIA JRV">
           <article>
+            <svg class="section-icon" aria-hidden="true"><use href="#icon-shield"></use></svg>
             <strong>Confirmación antes de pagar</strong>
             <span>Revisamos disponibilidad y total del pedido antes de indicarte el método de pago.</span>
           </article>
           <article>
+            <svg class="section-icon" aria-hidden="true"><use href="#icon-tag"></use></svg>
             <strong>Precios claros</strong>
             <span>Mostramos precio de detalle y mayoreo para que puedas comparar y comprar con confianza.</span>
           </article>
           <article>
+            <svg class="section-icon" aria-hidden="true"><use href="#icon-truck"></use></svg>
             <strong>Envío después de revisión</strong>
             <span>Cuando el pago se revisa y confirma, preparamos la guía para proceder con el envío.</span>
           </article>
         </div>
+      </section>
+
+      <section class="references-section" id="referencias" aria-labelledby="referencesTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Referencias</p>
+            <h2 id="referencesTitle">Clientes felices al recibir su pedido</h2>
+          </div>
+          <a class="text-link" data-whatsapp-general target="_blank" rel="noopener noreferrer">Pedir referencias por WhatsApp</a>
+        </div>
+        <div class="references-grid">
+          <article>
+            <svg class="quote-icon" aria-hidden="true"><use href="#icon-quote"></use></svg>
+            <p>“Mi pedido llegó completo y pude confirmar disponibilidad antes de pagar.”</p>
+            <strong>Cliente JRV</strong>
+            <span>Compra personal</span>
+          </article>
+          <article>
+            <svg class="quote-icon" aria-hidden="true"><use href="#icon-quote"></use></svg>
+            <p>“Me ayudaron por WhatsApp a elegir productos variados para iniciar mi venta.”</p>
+            <strong>Emprendedora JRV</strong>
+            <span>Compra mayorista</span>
+          </article>
+          <article>
+            <svg class="quote-icon" aria-hidden="true"><use href="#icon-quote"></use></svg>
+            <p>“Recibí seguimiento claro: total, pago revisado y guía para el envío.”</p>
+            <strong>Cliente en Honduras</strong>
+            <span>Pedido con transferencia</span>
+          </article>
+        </div>
+        <p class="references-note">
+          Puedes solicitar por WhatsApp referencias recientes, fotos de entrega o confirmación de disponibilidad antes de realizar tu pago.
+        </p>
       </section>
 
       <section class="catalog-section" id="catalogo">
@@ -351,21 +461,21 @@
         <div class="payment-layout">
           <div class="payment-copy">
             <article>
-              <span aria-hidden="true">1</span>
+              <span aria-hidden="true"><svg class="payment-icon"><use href="#icon-card"></use></svg></span>
               <div>
                 <strong>Tarjeta de crédito o débito</strong>
                 <p>Aceptamos pagos por link con Mastercard y Visa.</p>
               </div>
             </article>
             <article>
-              <span aria-hidden="true">2</span>
+              <span aria-hidden="true"><svg class="payment-icon"><use href="#icon-bank"></use></svg></span>
               <div>
                 <strong>Transferencia bancaria</strong>
                 <p>También puedes pagar por transferencia a las cuentas indicadas.</p>
               </div>
             </article>
             <article>
-              <span aria-hidden="true">3</span>
+              <span aria-hidden="true"><svg class="payment-icon"><use href="#icon-check"></use></svg></span>
               <div>
                 <strong>Comprobante y guía</strong>
                 <p>Envía el comprobante por WhatsApp. Revisamos la transferencia y, al confirmarse, realizamos la guía.</p>
