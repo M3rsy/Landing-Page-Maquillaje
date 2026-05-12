@@ -1,0 +1,21 @@
+{
+  "name": "landing-page-maquillaje",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Landing estatica de JOYERIA JRV con catalogo de maquillaje.",
+  "scripts": {
+    "setup:tailwind": "powershell -ExecutionPolicy Bypass -File scripts/download-tailwind.ps1",
+    "build:css": "powershell -ExecutionPolicy Bypass -File scripts/build-css.ps1",
+    "watch:css": "powershell -ExecutionPolicy Bypass -File scripts/watch-css.ps1",
+    "build:css:npm": "tailwindcss -i ./assets/css/input.css -o ./assets/css/styles.css && tailwindcss -i ./assets/css/input.css -o ./assets/css/styles.min.css --minify",
+    "build:js": "terser ./assets/js/script.js --compress --mangle --output ./assets/js/script.min.js",
+    "build": "npm run build:css && npm run build:js",
+    "check:html": "htmlhint index.html",
+    "check:js": "node --check assets/js/script.js && node --check assets/js/script.min.js"
+  },
+  "devDependencies": {
+    "htmlhint": "^1.1.4",
+    "tailwindcss": "^3.4.17",
+    "terser": "^5.31.6"
+  }
+}
