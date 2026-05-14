@@ -345,7 +345,7 @@
               <h3>Clienta feliz con su pedido</h3>
             </div>
             <div class="video-frame">
-              <video controls autoplay muted loop preload="metadata" playsinline aria-label="Video de clienta feliz con su pedido">
+              <video controls autoplay muted loop preload="metadata" aria-label="Video de clienta feliz con su pedido">
                 <source src="assets/videos/clienta-feliz-pedido.mp4" type="video/mp4" />
                 <track kind="subtitles" src="assets/videos/clienta-feliz-pedido-subtitles.vtt" srclang="es" label="Subtítulos">
                 <track kind="descriptions" src="assets/videos/clienta-feliz-pedido-descriptions.vtt" srclang="es" label="Descripciones">
@@ -360,7 +360,7 @@
               <h3>Productos recibidos y listos</h3>
             </div>
             <div class="video-frame">
-              <video controls autoplay muted loop preload="metadata" playsinline aria-label="Video de productos recibidos y listos">
+              <video controls autoplay muted loop preload="metadata" aria-label="Video de productos recibidos y listos">
                 <source src="assets/videos/productos-recibidos-listos.mp4" type="video/mp4" />
                 Tu navegador no puede reproducir este video.
               </video>
@@ -373,7 +373,7 @@
               <h3>Referencia real de entrega</h3>
             </div>
             <div class="video-frame">
-              <video controls autoplay muted loop preload="metadata" playsinline aria-label="Video de referencia real de entrega">
+              <video controls autoplay muted loop preload="metadata" aria-label="Video de referencia real de entrega">
                 <source src="assets/videos/referencia-entrega-real.mp4" type="video/mp4" />
                 Tu navegador no puede reproducir este video.
               </video>
@@ -611,7 +611,7 @@
         <h3 id="shareTextTitle">Material para revendedora</h3>
         <p class="share-text-hint">Imagen, datos y precios sin link del catálogo.</p>
         <img id="shareProductImage" class="share-product-image" src="assets/logo-jrv.svg" alt="Producto seleccionado" />
-        <textarea id="shareTextArea" class="share-textarea" readonly rows="10"></textarea>
+        <textarea id="shareTextArea" class="share-textarea" readonly rows="10" aria-label="Texto para compartir" title="Texto para compartir" placeholder="Texto para compartir"></textarea>
         <div class="share-text-actions">
           <a class="btn btn-primary" id="shareWhatsappLink" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a>
           <button class="btn btn-secondary" id="copyShareText" type="button">Copiar texto</button>
