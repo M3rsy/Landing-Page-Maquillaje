@@ -533,13 +533,6 @@ const getOptimizedProductImage = (product) => `assets/optimized/productos/${prod
 
 const getProductAnchorId = (product) => `producto-${normalize(product.code).replace(/[^a-z0-9]+/g, "-")}`;
 
-function getProductShareUrl(product) {
-  const url = new URL(globalThis.location.href);
-  url.search = "";
-  url.hash = getProductAnchorId(product);
-  return url.toString();
-}
-
 function getProductFromHash() {
   const hash = globalThis.location.hash.replace("#", "");
   if (!hash) return null;
@@ -1129,51 +1122,212 @@ function showShareFeedback(message) {
   }, 3600);
 }
 
-function buildProductShareText(product, url) {
+function buildProductShareText(product) {
   const lines = [
-    `🛍️ *${product.name}*`,
-    `📌 Marca: ${product.brand} | Código: ${product.code}`,
+    `*${product.name}*`,
+    `Marca: ${product.brand}`,
+    `Codigo: ${product.code}`,
     ``,
     product.description,
     ``,
-    `💰 Precio detalle: ${product.price}`,
-    `🏷️ Precio mayoreo: ${product.wholesale}`,
+    `Precio detalle: ${product.price}`,
+    `Precio mayoreo: ${product.wholesale}`,
     ``,
-    `🔗 ${url}`
+    `Disponible para pedido por WhatsApp.`
   ];
   return lines.join("\n");
+}
+
+const getProductShareImage = (product) => product.image;
+
+function getProductImageFileName(product) {
+  const cleanImagePath = getProductShareImage(product).split(/[?#]/)[0];
+  const extension = cleanImagePath.match(/\.[a-z0-9]+$/i)?.[0] || ".png";
+  return `${product.code}${extension}`;
+}
+
+function getImageMimeType(imagePath) {
+  const extension = imagePath.split(/[?#]/)[0].split(".").pop()?.toLowerCase();
+  const mimeTypes = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    webp: "image/webp"
+  };
+  return mimeTypes[extension] || "image/png";
+}
+
+function shouldUseNativeShare() {
+  const userAgent = globalThis.navigator?.userAgent || "";
+  const platform = globalThis.navigator?.platform || "";
+  const isIpadDesktopMode = platform === "MacIntel" && globalThis.navigator?.maxTouchPoints > 1;
+  const isMobileDevice = /Android|iPhone|iPad|iPod|Mobile|Tablet|Windows Phone/i.test(userAgent) || isIpadDesktopMode;
+
+  return Boolean(
+    globalThis.navigator?.share &&
+    isMobileDevice
+  );
+}
+
+async function createProductShareFile(product) {
+  if (!globalThis.File || !globalThis.fetch) return null;
+
+  const imagePath = getProductShareImage(product);
+  const imageUrl = new URL(imagePath, globalThis.location.href);
+  const response = await fetch(imageUrl.href);
+  if (!response.ok) return null;
+
+  const blob = await response.blob();
+  return new File([blob], getProductImageFileName(product), {
+    type: blob.type || getImageMimeType(imagePath)
+  });
+}
+
+async function shareProductFile(product, text) {
+  if (!globalThis.navigator?.share) return false;
+
+  const imageFile = await createProductShareFile(product).catch(() => null);
+  if (!imageFile) return false;
+
+  const shareData = {
+    title: `${product.name} | JOYERIA JRV`,
+    text,
+    files: [imageFile]
+  };
+
+  if (globalThis.navigator.canShare && !globalThis.navigator.canShare(shareData)) {
+    return false;
+  }
+
+  await globalThis.navigator.share(shareData);
+  return true;
+}
+
+function closeShareTextModal() {
+  const modal = document.querySelector("#shareTextModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+async function copyShareTextFromModal(textarea) {
+  textarea.select();
+
+  try {
+    if (globalThis.navigator?.clipboard?.writeText) {
+      await globalThis.navigator.clipboard.writeText(textarea.value);
+    } else {
+      document.execCommand("copy");
+    }
+    showShareFeedback("Texto copiado al portapapeles.");
+  } catch (_) {
+    document.execCommand("copy");
+    showShareFeedback("Texto copiado al portapapeles.");
+  }
+}
+
+async function copyProductImage(product, options = {}) {
+  if (!globalThis.navigator?.clipboard?.write || !globalThis.ClipboardItem) {
+    if (!options.silent) showShareFeedback("Descarga la imagen para adjuntarla.");
+    return false;
+  }
+
+  try {
+    const imagePath = getProductShareImage(product);
+    const response = await fetch(new URL(imagePath, globalThis.location.href).href);
+    const blob = await response.blob();
+    const type = blob.type || getImageMimeType(imagePath);
+    await globalThis.navigator.clipboard.write([
+      new ClipboardItem({
+        [type]: blob
+      })
+    ]);
+    if (!options.silent) showShareFeedback("Imagen copiada al portapapeles.");
+    return true;
+  } catch (_) {
+    if (!options.silent) showShareFeedback("No se pudo copiar la imagen. Usa Descargar imagen.");
+    return false;
+  }
+}
+
+async function sendProductToWhatsapp(product, text) {
+  try {
+    if (shouldUseNativeShare() && await shareProductFile(product, text)) {
+      closeShareTextModal();
+      return;
+    }
+  } catch (error) {
+    if (error?.name === "AbortError") return;
+  }
+
+  const imageCopied = await copyProductImage(product, { silent: true });
+  const whatsappWindow = globalThis.open(whatsappLink(text), "_blank", "noopener");
+
+  if (!whatsappWindow) {
+    showShareFeedback("Copia el texto y abre WhatsApp para enviarlo.");
+    return;
+  }
+
+  showShareFeedback(
+    imageCopied
+      ? "WhatsApp abierto. Imagen copiada; pégala en el chat si no aparece adjunta."
+      : "WhatsApp abierto con el texto. Adjunta la imagen con Descargar imagen."
+  );
+}
+
+function openShareTextModal(product, text) {
+  const modal = document.querySelector("#shareTextModal");
+  const textarea = document.querySelector("#shareTextArea");
+  const image = document.querySelector("#shareProductImage");
+  const whatsapp = document.querySelector("#shareWhatsappLink");
+  const download = document.querySelector("#downloadShareImage");
+  const copyBtn = document.querySelector("#copyShareText");
+  const copyImageBtn = document.querySelector("#copyShareImage");
+  const closeBtn = document.querySelector("#closeShareTextModal");
+  if (!modal || !textarea) return;
+
+  const imagePath = getProductShareImage(product);
+
+  modal.classList.remove("hidden");
+  textarea.value = text;
+
+  if (image) {
+    image.src = imagePath;
+    image.alt = product.name;
+  }
+
+  if (whatsapp) {
+    whatsapp.href = whatsappLink(text);
+    whatsapp.onclick = (event) => {
+      event.preventDefault();
+      sendProductToWhatsapp(product, text);
+    };
+  }
+
+  if (download) {
+    download.href = imagePath;
+    download.download = getProductImageFileName(product);
+  }
+
+  if (copyImageBtn) {
+    copyImageBtn.hidden = !(globalThis.navigator?.clipboard?.write && globalThis.ClipboardItem);
+    copyImageBtn.onclick = () => copyProductImage(product);
+  }
+
+  if (copyBtn) copyBtn.onclick = () => copyShareTextFromModal(textarea);
+  if (closeBtn) closeBtn.onclick = closeShareTextModal;
+  modal.onclick = (event) => {
+    if (event.target === modal) closeShareTextModal();
+  };
+
+  textarea.focus();
+  textarea.select();
 }
 
 async function shareProduct(code) {
   const product = getProductByCode(code);
   if (!product) return;
 
-  const url = getProductShareUrl(product);
-  const shareText = buildProductShareText(product, url);
-  const shareData = {
-    title: `${product.name} | JOYERIA JRV`,
-    text: shareText,
-    url
-  };
-
-  try {
-    if (globalThis.navigator?.share) {
-      await globalThis.navigator.share(shareData);
-      return;
-    }
-
-    if (globalThis.navigator?.clipboard?.writeText) {
-      await globalThis.navigator.clipboard.writeText(shareText);
-      showShareFeedback("Información del producto copiada.");
-      return;
-    }
-
-    showShareFeedback(`Link del producto: ${url}`);
-  } catch (error) {
-    if (error?.name !== "AbortError") {
-      showShareFeedback(`Link del producto: ${url}`);
-    }
-  }
+  const shareText = buildProductShareText(product);
+  openShareTextModal(product, shareText);
 }
 
 function resetCatalogFilters() {

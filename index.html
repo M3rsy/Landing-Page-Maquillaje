@@ -605,6 +605,22 @@
 
     <p id="shareFeedback" class="share-feedback hidden" aria-live="polite"></p>
 
+    <div id="shareTextModal" class="share-text-modal hidden" role="dialog" aria-modal="true" aria-labelledby="shareTextTitle">
+      <div class="share-text-panel">
+        <button class="modal-close" id="closeShareTextModal" type="button" aria-label="Cerrar">&times;</button>
+        <h3 id="shareTextTitle">Material para revendedora</h3>
+        <p class="share-text-hint">Imagen, datos y precios sin link del catálogo.</p>
+        <img id="shareProductImage" class="share-product-image" src="assets/logo-jrv.svg" alt="Producto seleccionado" />
+        <textarea id="shareTextArea" class="share-textarea" readonly rows="10"></textarea>
+        <div class="share-text-actions">
+          <a class="btn btn-primary" id="shareWhatsappLink" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a>
+          <button class="btn btn-secondary" id="copyShareText" type="button">Copiar texto</button>
+          <button class="btn btn-secondary" id="copyShareImage" type="button">Copiar imagen</button>
+          <a class="btn btn-secondary" id="downloadShareImage" download>Descargar imagen</a>
+        </div>
+      </div>
+    </div>
+
     <div id="cartBar" class="cart-bar hidden" aria-live="polite">
       <span id="cartSummary">0 productos en pedido</span>
       <div class="cart-bar-actions">
