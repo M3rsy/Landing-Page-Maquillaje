@@ -1129,14 +1129,30 @@ function showShareFeedback(message) {
   }, 3600);
 }
 
+function buildProductShareText(product, url) {
+  const lines = [
+    `🛍️ *${product.name}*`,
+    `📌 Marca: ${product.brand} | Código: ${product.code}`,
+    ``,
+    product.description,
+    ``,
+    `💰 Precio detalle: ${product.price}`,
+    `🏷️ Precio mayoreo: ${product.wholesale}`,
+    ``,
+    `🔗 ${url}`
+  ];
+  return lines.join("\n");
+}
+
 async function shareProduct(code) {
   const product = getProductByCode(code);
   if (!product) return;
 
   const url = getProductShareUrl(product);
+  const shareText = buildProductShareText(product, url);
   const shareData = {
     title: `${product.name} | JOYERIA JRV`,
-    text: `Mira este producto del catálogo JOYERIA JRV: ${product.name}`,
+    text: shareText,
     url
   };
 
@@ -1147,8 +1163,8 @@ async function shareProduct(code) {
     }
 
     if (globalThis.navigator?.clipboard?.writeText) {
-      await globalThis.navigator.clipboard.writeText(url);
-      showShareFeedback("Link del producto copiado.");
+      await globalThis.navigator.clipboard.writeText(shareText);
+      showShareFeedback("Información del producto copiada.");
       return;
     }
 
