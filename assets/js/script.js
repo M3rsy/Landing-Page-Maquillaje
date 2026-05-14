@@ -802,7 +802,7 @@ function renderProductCard(product, options = {}) {
         aria-label="Ampliar imagen de ${escapeHtml(product.name)}"
       >
         <span class="status-badge ${productStatus.className}">${productStatus.label}</span>
-        ${isHot ? '<span class="product-badge hot-badge">Venta HOT</span>' : ""}
+        ${isHot ? '<span class="product-badge hot-badge">🔥🔥🔥</span>' : ""}
         <img
           src="${escapeHtml(imageSrc)}"
           data-fallback-image="${escapeHtml(product.image)}"
