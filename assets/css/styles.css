@@ -1461,7 +1461,99 @@ textarea:focus-visible {
 .hidden,
 #imageModal.hidden,
 #promoPopup.hidden,
-#cartDrawer.hidden {
+#cartDrawer.hidden,
+#shareTextModal.hidden {
+  display: none !important;
+}
+
+#shareTextModal:not(.hidden) {
+  display: flex;
+}
+
+.share-text-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 1.2rem;
+  border: 0;
+  background: rgba(42, 21, 27, 0.72);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.share-text-panel {
+  position: relative;
+  display: grid;
+  gap: 0.85rem;
+  width: min(540px, 100%);
+  max-height: min(760px, 92vh);
+  padding: 1.25rem;
+  overflow-y: auto;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.share-text-panel h3 {
+  margin: 0;
+  padding-right: 2.6rem;
+  color: var(--rose-dark);
+  font-size: 1.35rem;
+}
+
+.share-text-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.share-product-image {
+  width: 100%;
+  max-height: 260px;
+  padding: 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff, var(--surface-soft));
+  object-fit: contain;
+}
+
+.share-textarea {
+  width: 100%;
+  min-height: 190px;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffafa;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.share-text-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.share-text-actions .btn {
+  width: 100%;
+  min-height: 44px;
+  justify-content: center;
+  text-align: center;
+}
+
+.share-text-actions [hidden] {
   display: none !important;
 }
 
@@ -1579,6 +1671,8 @@ textarea:focus-visible {
 
 .image-modal-footer {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
   gap: 0.75rem;
   padding: 1rem;
   border-top: 1px solid var(--line);
@@ -1587,6 +1681,17 @@ textarea:focus-visible {
 .image-modal-footer h2 {
   margin: 0;
   font-size: 1.1rem;
+}
+
+.image-modal-footer .product-share-button,
+.image-modal-footer .product-whatsapp {
+  width: auto;
+  min-width: -moz-max-content;
+  min-width: max-content;
+  min-height: 44px;
+  aspect-ratio: auto;
+  padding: 0 0.9rem;
+  white-space: nowrap;
 }
 
 .cart-bar {
@@ -2109,6 +2214,23 @@ textarea:focus-visible {
   .product-whatsapp,
   .product-share-button {
     min-height: 56px;
+  }
+
+  .image-modal-footer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .image-modal-footer h2 {
+    grid-column: 1 / -1;
+  }
+
+  .image-modal-footer .product-share-button,
+  .image-modal-footer .product-whatsapp {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    padding: 0 0.7rem;
+    white-space: normal;
   }
 
   .cart-bar {

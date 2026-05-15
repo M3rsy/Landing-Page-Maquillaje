@@ -345,7 +345,7 @@
               <h3>Clienta feliz con su pedido</h3>
             </div>
             <div class="video-frame">
-              <video controls autoplay muted preload="metadata" playsinline aria-label="Video de clienta feliz con su pedido">
+              <video controls autoplay muted loop preload="metadata" aria-label="Video de clienta feliz con su pedido">
                 <source src="assets/videos/clienta-feliz-pedido.mp4" type="video/mp4" />
                 <track kind="subtitles" src="assets/videos/clienta-feliz-pedido-subtitles.vtt" srclang="es" label="Subtítulos">
                 <track kind="descriptions" src="assets/videos/clienta-feliz-pedido-descriptions.vtt" srclang="es" label="Descripciones">
@@ -360,7 +360,7 @@
               <h3>Productos recibidos y listos</h3>
             </div>
             <div class="video-frame">
-              <video controls autoplay muted preload="metadata" playsinline aria-label="Video de productos recibidos y listos">
+              <video controls autoplay muted loop preload="metadata" aria-label="Video de productos recibidos y listos">
                 <source src="assets/videos/productos-recibidos-listos.mp4" type="video/mp4" />
                 Tu navegador no puede reproducir este video.
               </video>
@@ -373,12 +373,51 @@
               <h3>Referencia real de entrega</h3>
             </div>
             <div class="video-frame">
-              <video controls autoplay muted preload="metadata" playsinline aria-label="Video de referencia real de entrega">
+              <video controls autoplay muted loop preload="metadata" aria-label="Video de referencia real de entrega">
                 <source src="assets/videos/referencia-entrega-real.mp4" type="video/mp4" />
                 Tu navegador no puede reproducir este video.
               </video>
             </div>
             <a class="text-link" href="assets/videos/referencia-entrega-real.mp4" target="_blank" rel="noopener noreferrer">Abrir video</a>
+          </article>
+          <article class="video-card">
+            <div class="video-card-heading">
+              <svg class="section-icon" aria-hidden="true"><use href="#icon-play"></use></svg>
+              <h3>Referencia recibida por WhatsApp</h3>
+            </div>
+            <div class="video-frame">
+              <video controls autoplay muted loop preload="metadata" aria-label="Video de referencia recibida por WhatsApp">
+                <source src="assets/videos/referencia-whatsapp-2026-05-10.mp4" type="video/mp4" />
+                Tu navegador no puede reproducir este video.
+              </video>
+            </div>
+            <a class="text-link" href="assets/videos/referencia-whatsapp-2026-05-10.mp4" target="_blank" rel="noopener noreferrer">Abrir video</a>
+          </article>
+          <article class="video-card">
+            <div class="video-card-heading">
+              <svg class="section-icon" aria-hidden="true"><use href="#icon-play"></use></svg>
+              <h3>Referencia Lees Beauty</h3>
+            </div>
+            <div class="video-frame">
+              <video controls autoplay muted loop preload="metadata" aria-label="Video de referencia Lees Beauty">
+                <source src="assets/videos/referencia-leesbeauty-1778268583094.mp4" type="video/mp4" />
+                Tu navegador no puede reproducir este video.
+              </video>
+            </div>
+            <a class="text-link" href="assets/videos/referencia-leesbeauty-1778268583094.mp4" target="_blank" rel="noopener noreferrer">Abrir video</a>
+          </article>
+          <article class="video-card">
+            <div class="video-card-heading">
+              <svg class="section-icon" aria-hidden="true"><use href="#icon-play"></use></svg>
+              <h3>Referencia Kevin Coco Beauty</h3>
+            </div>
+            <div class="video-frame">
+              <video controls autoplay muted loop preload="metadata" aria-label="Video de referencia Kevin Coco Beauty">
+                <source src="assets/videos/referencia-kevincoco-beauty-1778168500935.mp4" type="video/mp4" />
+                Tu navegador no puede reproducir este video.
+              </video>
+            </div>
+            <a class="text-link" href="assets/videos/referencia-kevincoco-beauty-1778168500935.mp4" target="_blank" rel="noopener noreferrer">Abrir video</a>
           </article>
         </div>
       </section>
@@ -604,6 +643,22 @@
     </button>
 
     <p id="shareFeedback" class="share-feedback hidden" aria-live="polite"></p>
+
+    <div id="shareTextModal" class="share-text-modal hidden" role="dialog" aria-modal="true" aria-labelledby="shareTextTitle">
+      <div class="share-text-panel">
+        <button class="modal-close" id="closeShareTextModal" type="button" aria-label="Cerrar">&times;</button>
+        <h3 id="shareTextTitle">Material para revendedora</h3>
+        <p class="share-text-hint">Imagen, datos y precios sin link del catálogo.</p>
+        <img id="shareProductImage" class="share-product-image" src="assets/logo-jrv.svg" alt="Producto seleccionado" />
+        <textarea id="shareTextArea" class="share-textarea" readonly rows="10" aria-label="Texto para compartir" title="Texto para compartir" placeholder="Texto para compartir"></textarea>
+        <div class="share-text-actions">
+          <a class="btn btn-primary" id="shareWhatsappLink" target="_blank" rel="noopener noreferrer">Enviar por WhatsApp</a>
+          <button class="btn btn-secondary" id="copyShareText" type="button">Copiar texto</button>
+          <button class="btn btn-secondary" id="copyShareImage" type="button">Copiar imagen</button>
+          <a class="btn btn-secondary" id="downloadShareImage" download>Descargar imagen</a>
+        </div>
+      </div>
+    </div>
 
     <div id="cartBar" class="cart-bar hidden" aria-live="polite">
       <span id="cartSummary">0 productos en pedido</span>
