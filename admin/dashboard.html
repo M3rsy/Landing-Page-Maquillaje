@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JRV Admin — Productos</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <header class="top-bar">
+    <div class="top-bar-inner">
+
+      <!-- Logo -->
+      <a class="nav-brand" href="dashboard.html" aria-label="Inicio del panel">
+        <div class="nav-brand-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 2.61 1.41 4.88 3.5 6.17V17a1 1 0 001 1h5a1 1 0 001-1v-1.83C17.59 13.88 19 11.61 19 9c0-3.87-3.13-7-7-7zm-1 14v-1h2v1h-2zm3.73-3.28L14 13.45V15h-4v-1.55l-.73-.73A5 5 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5a5 5 0 01-2.27 4.21v.51z"/>
+            <path d="M11 6h2v4h-2z" opacity=".6"/>
+          </svg>
+        </div>
+        <div class="nav-brand-text">
+          <span class="nav-brand-title">JRV</span>
+          <span class="nav-brand-sub">Panel Admin</span>
+        </div>
+      </a>
+
+      <!-- Nav links (center) -->
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a class="nav-link active" href="dashboard.html">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/>
+            <rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>
+          </svg>
+          Productos
+        </a>
+      </nav>
+
+      <!-- Right: user + logout -->
+      <div class="nav-user">
+        <div class="nav-avatar" id="navAvatar" aria-hidden="true"></div>
+        <div class="nav-user-info">
+          <span class="nav-user-name" id="adminName"></span>
+          <span class="nav-user-role">Administrador</span>
+        </div>
+        <div class="nav-divider" aria-hidden="true"></div>
+        <button id="logoutBtn" class="nav-logout" aria-label="Cerrar sesión">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Salir</span>
+        </button>
+      </div>
+
+    </div>
+    <!-- Gold accent line -->
+    <div class="top-bar-accent" aria-hidden="true"></div>
+  </header>
+
+  <main class="dashboard">
+    <!-- Formulario agregar/editar -->
+    <section class="card form-section">
+      <h2 id="formTitle">Agregar Producto</h2>
+      <form id="productForm" enctype="multipart/form-data">
+        <input type="hidden" id="editId" />
+        <div class="form-grid">
+          <div class="field">
+            <label for="codigo">Código del Producto *</label>
+            <input id="codigo" name="codigo" type="text" required placeholder="Ej: LQBL-PT" />
+          </div>
+          <div class="field">
+            <label for="titulo">Título *</label>
+            <input id="titulo" name="titulo" type="text" required placeholder="Nombre del producto" />
+          </div>
+          <div class="field">
+            <label for="categoria">Categoría *</label>
+            <select id="categoria" name="categoria" required>
+              <option value="">— Seleccionar —</option>
+              <option value="Rubores">Rubores</option>
+              <option value="Ojos">Ojos</option>
+              <option value="Labios">Labios</option>
+              <option value="Labios y mejillas">Labios y mejillas</option>
+              <option value="Herramientas">Herramientas</option>
+              <option value="Cuidado corporal">Cuidado corporal</option>
+              <option value="Base y corrector">Base y corrector</option>
+              <option value="Iluminadores">Iluminadores</option>
+              <option value="Sets y kits">Sets y kits</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="precio">Precio de venta (L) *</label>
+            <input id="precio" name="precio" type="number" step="0.01" min="0" required placeholder="0.00" />
+          </div>
+          <div class="field">
+            <label for="costo">Costo (L) *</label>
+            <input id="costo" name="costo" type="number" step="0.01" min="0" required placeholder="0.00" />
+          </div>
+          <div class="field field-full">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" name="descripcion" rows="3" placeholder="Descripción del producto…"></textarea>
+          </div>
+          <div class="field">
+            <label for="imagen">Imagen del producto</label>
+            <input id="imagen" name="imagen" type="file" accept="image/*" />
+            <p class="field-hint">Máximo 5 MB. JPG, PNG o WebP.</p>
+          </div>
+          <div class="field field-check">
+            <label>
+              <input id="disponible" name="disponible" type="checkbox" checked />
+              Disponible en catálogo
+            </label>
+          </div>
+        </div>
+        <p id="formError" class="error-msg" hidden></p>
+        <p id="formSuccess" class="success-msg" hidden></p>
+        <div class="form-actions">
+          <button type="submit" id="submitBtn" class="btn-primary">Guardar producto</button>
+          <button type="button" id="cancelEditBtn" class="btn-outline" hidden>Cancelar edición</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Tabla de productos -->
+    <section class="card">
+      <div class="table-header">
+        <h2>Productos registrados <span id="productCount" class="badge">0</span></h2>
+        <input id="searchInput" type="search" placeholder="Buscar por código o título…" class="search-input" />
+      </div>
+      <div class="table-wrapper">
+        <table id="productsTable">
+          <thead>
+            <tr>
+              <th>Imagen</th>
+              <th>Código</th>
+              <th>Título</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Costo</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="productsBody">
+            <tr><td colspan="8" class="empty-row">Cargando productos…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

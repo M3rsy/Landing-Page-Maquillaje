@@ -10,8 +10,8 @@ const FEATURED_CODES = ["LQBL-PT", "DBJ-SET", "KC245123", "KC230005"];
 const SOLD_OUT_CODES = [];
 const PROMO_STORAGE_KEY = "jrvPromoShownDate";
 
-// Edita este array para agregar productos, cambiar precios o reemplazar imagenes.
-const products = [
+// Array estático de productos (fallback si la API no está disponible).
+let products = [
   {
     code: "LQBL-PT",
     name: "Liquid Blush Display",
@@ -443,6 +443,45 @@ const products = [
     description: "Contorno en crema Enigmatic Goddess. Esculpe y define el rostro con precision. Textura cremosa y facil de difuminar. 4 tonos. 4.3 g."
   }
 ];
+
+// Copia de los productos estáticos para usar como fallback.
+const staticProducts = products.slice();
+
+// Convierte un producto del backend (API) al formato que usa el catálogo.
+function mapApiProduct(p) {
+  return {
+    code: p.codigo,
+    name: p.titulo,
+    brand: "JRV",
+    category: p.categoria,
+    price: `L ${parseFloat(p.precio).toFixed(2)}`,
+    wholesale: "",
+    image: p.imagen || "",
+    description: p.descripcion || "",
+    available: p.disponible === 1,
+  };
+}
+
+// Carga productos desde la API y los fusiona con los estáticos.
+// Los productos de la API aparecen primero; los estáticos sin código duplicado se agregan al final.
+async function loadApiProducts() {
+  try {
+    const res = await fetch("/api/products");
+    if (!res.ok) return;
+    const apiData = await res.json();
+    if (!Array.isArray(apiData) || apiData.length === 0) return;
+
+    const apiMapped = apiData
+      .filter((p) => p.disponible !== 0)
+      .map(mapApiProduct);
+
+    const apiCodes = new Set(apiMapped.map((p) => p.code));
+    const remainingStatic = staticProducts.filter((p) => !apiCodes.has(p.code));
+    products = [...apiMapped, ...remainingStatic];
+  } catch {
+    // Si la API falla, se usan los productos estáticos (sin cambios)
+  }
+}
 
 const state = {
   search: "",
@@ -1379,17 +1418,25 @@ if (clearFilters) {
   clearFilters.addEventListener("click", resetFilters);
 }
 
-document.querySelector("#currentYear").textContent = new Date().getFullYear();
-setGeneralWhatsappLinks();
-startCountdown();
-buildFilters();
-renderFeaturedProducts();
-renderProducts();
-renderCart();
-toggleBackToTop();
-revealProductFromHash();
-globalThis.setTimeout(() => {
-  if (shouldShowPromoPopup()) {
-    openPromoPopup();
-  }
-}, 900);
+async function initApp() {
+  document.querySelector("#currentYear").textContent = new Date().getFullYear();
+  setGeneralWhatsappLinks();
+  startCountdown();
+  renderCart();
+  toggleBackToTop();
+
+  await loadApiProducts();
+
+  buildFilters();
+  renderFeaturedProducts();
+  renderProducts();
+  revealProductFromHash();
+
+  globalThis.setTimeout(() => {
+    if (shouldShowPromoPopup()) {
+      openPromoPopup();
+    }
+  }, 900);
+}
+
+initApp();
