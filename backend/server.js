@@ -8,7 +8,27 @@ const productRoutes = require("./routes/products");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// CORS: restringido a los orígenes definidos en CORS_ORIGIN (separados por coma).
+// Si CORS_ORIGIN no está configurado, origin:false bloquea cross-origin correctamente
+// porque el frontend y la API corren en el mismo servidor Express.
+const rawOrigins = process.env.CORS_ORIGIN;
+let corsOptions;
+if (rawOrigins) {
+  const allowed = rawOrigins.split(",").map((o) => o.trim()).filter(Boolean);
+  corsOptions = {
+    origin(origin, callback) {
+      if (!origin || allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origen no permitido → ${origin}`));
+      }
+    },
+    credentials: true,
+  };
+} else {
+  corsOptions = { origin: false };
+}
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -4,7 +4,7 @@
   "private": true,
   "description": "Landing estatica de JOYERIA JRV con catalogo de maquillaje.",
   "scripts": {
-    "start": "node backend/server.js",
+    "start": "node --env-file=.env backend/server.js",
     "setup:tailwind": "powershell -ExecutionPolicy Bypass -File scripts/download-tailwind.ps1",
     "build:css": "powershell -ExecutionPolicy Bypass -File scripts/build-css.ps1",
     "watch:css": "powershell -ExecutionPolicy Bypass -File scripts/watch-css.ps1",
@@ -24,6 +24,7 @@
     "better-sqlite3": "^12.10.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "express-rate-limit": "^7.5.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1"
   }

@@ -1,5 +1,12 @@
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "jrv_secret_2024";
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error(
+    "[authMiddleware] JWT_SECRET no está definido. " +
+    "Configura esta variable de entorno antes de arrancar el servidor."
+  );
+}
 
 function requireAuth(req, res, next) {
   const header = req.headers["authorization"];

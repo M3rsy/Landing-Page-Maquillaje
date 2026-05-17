@@ -1,7 +1,10 @@
 node_modules/
 tools/tailwindcss.exe
+backend/*.db-shm
+backend/*.db-wal
 .env
-.env.*
+.env.local
+.env.production
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
