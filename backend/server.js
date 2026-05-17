@@ -35,8 +35,8 @@ app.use(express.urlencoded({ extended: true }));
 // Servir el sitio principal estático
 app.use(express.static(path.join(__dirname, "..")));
 
-// Servir imágenes subidas
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Servir imágenes subidas (path configurable para deploys con volumen persistente)
+app.use("/uploads", express.static(process.env.UPLOADS_DIR || path.join(__dirname, "uploads")));
 
 // Servir el panel de administración
 app.use("/admin", express.static(path.join(__dirname, "../admin")));
