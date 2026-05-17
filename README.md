@@ -47,3 +47,58 @@ https://www.instagram.com/reel/CODIGO_DEL_REEL/embed/
 ```
 
 Despues de modificar estilos en `assets/css/input.css`, vuelve a compilar Tailwind.
+
+## Backend — Setup y arranque
+
+El backend Express gestiona el catalogo de productos y el panel de administracion en `/admin/`.
+
+### Requisitos
+
+- Node.js 18 o superior
+
+### Instalacion
+
+```bash
+npm install
+```
+
+### Configuracion de entorno
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` y completa los valores:
+
+1. Genera `JWT_SECRET`:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+   ```
+   Copia el resultado en `JWT_SECRET=` dentro del `.env`.
+
+2. `CORS_ORIGIN` solo es necesario si el frontend se sirve desde un dominio diferente al backend.
+
+### Crear credenciales del admin (solo la primera vez)
+
+```bash
+ADMIN_PASSWORD=tu_contraseña_segura node backend/scripts/create-admin.js
+```
+
+Para cambiar la contraseña en el futuro, ejecuta el mismo comando con la nueva contraseña.
+
+### Arrancar el servidor
+
+```bash
+npm start
+```
+
+El panel de administracion queda en `http://localhost:3000/admin/`.
+
+### Variables de entorno
+
+| Variable | Obligatoria | Descripcion |
+|---|---|---|
+| `JWT_SECRET` | Si | Secreto para firmar tokens JWT. Minimo 32 caracteres. |
+| `PORT` | No | Puerto del servidor (default: 3000). |
+| `CORS_ORIGIN` | No | Origenes CORS separados por coma. Vacio = mismo dominio. |
+| `ADMIN_PASSWORD` | Solo setup | Contrasena para `create-admin.js`. No necesaria despues. |

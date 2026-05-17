@@ -101,6 +101,7 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
     precio: form.precio.value,
     costo: form.costo.value,
     categoria: form.categoria.value,
+    marca: form.marca.value.trim(),
     disponible: form.disponible.checked ? 1 : 0,
   };
 
@@ -156,6 +157,7 @@ function startEdit(id) {
   document.getElementById("precio").value = p.precio;
   document.getElementById("costo").value = p.costo;
   document.getElementById("categoria").value = p.categoria;
+  document.getElementById("marca").value = p.marca || "";
   document.getElementById("disponible").checked = !!p.disponible;
   document.getElementById("submitBtn").textContent = "Actualizar producto";
   document.getElementById("cancelEditBtn").hidden = false;

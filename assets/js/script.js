@@ -452,10 +452,10 @@ function mapApiProduct(p) {
   return {
     code: p.codigo,
     name: p.titulo,
-    brand: "JRV",
+    brand: p.marca || "",
     category: p.categoria,
     price: `L ${parseFloat(p.precio).toFixed(2)}`,
-    wholesale: "",
+    wholesale: p.costo ? `L ${parseFloat(p.costo).toFixed(2)}` : "",
     image: p.imagen || "",
     description: p.descripcion || "",
     available: p.disponible === 1,

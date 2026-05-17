@@ -44,14 +44,14 @@ router.get("/:id", (req, res) => {
 
 // POST /api/products — requiere JWT
 router.post("/", requireAuth, (req, res) => {
-  const { codigo, titulo, descripcion, precio, costo, categoria, disponible } = req.body;
+  const { codigo, titulo, descripcion, precio, costo, categoria, marca, disponible } = req.body;
   if (!codigo || !titulo || precio == null || costo == null || !categoria) {
     return res.status(400).json({ error: "Campos requeridos: codigo, titulo, precio, costo, categoria" });
   }
   try {
     const stmt = db.prepare(`
-      INSERT INTO products (codigo, titulo, descripcion, precio, costo, categoria, disponible)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO products (codigo, titulo, descripcion, precio, costo, categoria, marca, disponible)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
     const info = stmt.run(
       codigo,
@@ -60,6 +60,7 @@ router.post("/", requireAuth, (req, res) => {
       parseFloat(precio),
       parseFloat(costo),
       categoria,
+      marca || "",
       disponible === false || disponible === "0" ? 0 : 1
     );
     const created = db.prepare("SELECT * FROM products WHERE id = ?").get(info.lastInsertRowid);
@@ -74,14 +75,14 @@ router.post("/", requireAuth, (req, res) => {
 
 // PUT /api/products/:id — requiere JWT
 router.put("/:id", requireAuth, (req, res) => {
-  const { codigo, titulo, descripcion, precio, costo, categoria, disponible } = req.body;
+  const { codigo, titulo, descripcion, precio, costo, categoria, marca, disponible } = req.body;
   const existing = db.prepare("SELECT id FROM products WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Producto no encontrado" });
 
   try {
     db.prepare(`
       UPDATE products
-      SET codigo = ?, titulo = ?, descripcion = ?, precio = ?, costo = ?, categoria = ?, disponible = ?
+      SET codigo = ?, titulo = ?, descripcion = ?, precio = ?, costo = ?, categoria = ?, marca = ?, disponible = ?
       WHERE id = ?
     `).run(
       codigo,
@@ -90,6 +91,7 @@ router.put("/:id", requireAuth, (req, res) => {
       parseFloat(precio),
       parseFloat(costo),
       categoria,
+      marca || "",
       disponible === false || disponible === "0" ? 0 : 1,
       req.params.id
     );
