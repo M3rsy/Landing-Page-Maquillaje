@@ -2,6 +2,9 @@
   "name": "landing-page-maquillaje",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20.6.0"
+  },
   "description": "Landing estatica de JOYERIA JRV con catalogo de maquillaje.",
   "scripts": {
     "start": "node --env-file=.env backend/server.js",

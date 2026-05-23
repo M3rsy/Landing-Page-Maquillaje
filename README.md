@@ -54,7 +54,7 @@ El backend Express gestiona el catalogo de productos y el panel de administracio
 
 ### Requisitos
 
-- Node.js 18 o superior
+- Node.js 20.6 o superior
 
 ### Instalacion
 
@@ -92,7 +92,15 @@ Para cambiar la contraseña en el futuro, ejecuta el mismo comando con la nueva 
 npm start
 ```
 
+`npm start` usa `node --env-file=.env`, por eso se requiere Node.js 20.6+.
+
 El panel de administracion queda en `http://localhost:3000/admin/`.
+
+### Datos runtime (base local y uploads)
+
+- `backend/jrv.db` se genera en runtime (base SQLite local).
+- `backend/uploads/` guarda archivos subidos por el panel admin.
+- Estos archivos no deben versionarse; en Git solo se conserva `backend/uploads/.gitkeep`.
 
 ### Variables de entorno
 
