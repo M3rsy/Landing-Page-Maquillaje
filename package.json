@@ -12,6 +12,7 @@
     "watch:css": "powershell -ExecutionPolicy Bypass -File scripts/watch-css.ps1",
     "build:css:npm": "tailwindcss -i ./assets/css/input.css -o ./assets/css/styles.css && tailwindcss -i ./assets/css/input.css -o ./assets/css/styles.min.css --minify",
     "build:js": "terser ./assets/js/script.js --compress --mangle --output ./assets/js/script.min.js",
+    "bump:assets": "node scripts/bump-asset-version.mjs",
     "build": "npm run build:css && npm run build:js",
     "check:html": "htmlhint index.html",
     "check:js": "node --check assets/js/script.js && node --check assets/js/script.min.js"

@@ -28,7 +28,7 @@ Modo observador mientras editas:
 powershell -ExecutionPolicy Bypass -File scripts/watch-css.ps1
 ```
 
-`index.html` carga `assets/css/styles.min.css` y `assets/js/script.min.js`, por eso los cambios deben hacerse en los archivos fuente (`assets/css/input.css` y `assets/js/script.js`) y luego compilar/minificar.
+`index.html` carga `assets/css/styles.min.css?v=...` y `assets/js/script.min.js?v=...`, por eso los cambios deben hacerse en los archivos fuente (`assets/css/input.css` y `assets/js/script.js`) y luego compilar/minificar.
 
 ## Agregar videos de Instagram
 
@@ -60,4 +60,16 @@ Si editas `assets/js/script.js`, volve a minificar antes de deploy:
 
 ```bash
 npm run build:js
+```
+
+Antes de deploy, actualiza la version de assets para evitar cache viejo en CDN:
+
+```bash
+npm run bump:assets
+```
+
+Tambien puedes setear una version manual (ejemplo: hash de commit):
+
+```bash
+node scripts/bump-asset-version.mjs a24ab8e
 ```
