@@ -28,7 +28,7 @@ Modo observador mientras editas:
 powershell -ExecutionPolicy Bypass -File scripts/watch-css.ps1
 ```
 
-`index.html` carga `assets/css/styles.css`, por eso los cambios de diseno deben hacerse en `assets/css/input.css` y luego compilar.
+`index.html` carga `assets/css/styles.min.css` y `assets/js/script.min.js`, por eso los cambios deben hacerse en los archivos fuente (`assets/css/input.css` y `assets/js/script.js`) y luego compilar/minificar.
 
 ## Agregar videos de Instagram
 
@@ -54,7 +54,7 @@ El backend Express gestiona el catalogo de productos y el panel de administracio
 
 ### Requisitos
 
-- Node.js 18 o superior
+- Node.js 20.6 o superior
 
 ### Instalacion
 
@@ -92,7 +92,22 @@ Para cambiar la contraseña en el futuro, ejecuta el mismo comando con la nueva 
 npm start
 ```
 
+`npm start` usa `node --env-file=.env`, por eso se requiere Node.js 20.6+.
+
 El panel de administracion queda en `http://localhost:3000/admin/`.
+
+### Sesion del panel admin
+
+- El login ahora usa cookie `HttpOnly` (no se guarda token en `localStorage`).
+- Endpoint de verificacion de sesion: `GET /api/auth/me`.
+- Endpoint de cierre de sesion: `POST /api/auth/logout`.
+- Healthcheck operativo: `GET /health`.
+
+### Datos runtime (base local y uploads)
+
+- `backend/jrv.db` se genera en runtime (base SQLite local).
+- `backend/uploads/` guarda archivos subidos por el panel admin.
+- Estos archivos no deben versionarse; en Git solo se conserva `backend/uploads/.gitkeep`.
 
 ### Variables de entorno
 
@@ -101,4 +116,8 @@ El panel de administracion queda en `http://localhost:3000/admin/`.
 | `JWT_SECRET` | Si | Secreto para firmar tokens JWT. Minimo 32 caracteres. |
 | `PORT` | No | Puerto del servidor (default: 3000). |
 | `CORS_ORIGIN` | No | Origenes CORS separados por coma. Vacio = mismo dominio. |
+| `AUTH_TOKEN_TTL_HOURS` | No | Duracion del token/cookie admin en horas (default: 8). |
+| `AUTH_COOKIE_SAMESITE` | No | `lax` (default), `strict` o `none`. |
+| `AUTH_COOKIE_SECURE` | No | `true`/`false` para forzar flag Secure de la cookie. |
+| `AUTH_COOKIE_DOMAIN` | No | Dominio explicito para la cookie admin. |
 | `ADMIN_PASSWORD` | Solo setup | Contrasena para `create-admin.js`. No necesaria despues. |
