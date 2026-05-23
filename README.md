@@ -120,4 +120,16 @@ El panel de administracion queda en `http://localhost:3000/admin/`.
 | `AUTH_COOKIE_SAMESITE` | No | `lax` (default), `strict` o `none`. |
 | `AUTH_COOKIE_SECURE` | No | `true`/`false` para forzar flag Secure de la cookie. |
 | `AUTH_COOKIE_DOMAIN` | No | Dominio explicito para la cookie admin. |
+| `DB_PATH` | No | Ruta del archivo SQLite (default: `backend/jrv.db`). |
+| `UPLOADS_DIR` | No | Ruta del directorio de uploads (default: `backend/uploads`). |
 | `ADMIN_PASSWORD` | Solo setup | Contrasena para `create-admin.js`. No necesaria despues. |
+
+### Deploy en Dokploy (backend + API)
+
+- El repo incluye `Dockerfile` para correr Express + API en el mismo contenedor.
+- En Dokploy, usa rama `main` y puerto de contenedor `3000`.
+- Configura volumen persistente montado en `/app/data`.
+- Variables recomendadas:
+  - `DB_PATH=/app/data/jrv.db`
+  - `UPLOADS_DIR=/app/data/uploads`
+  - `JWT_SECRET=<secreto_largo>`

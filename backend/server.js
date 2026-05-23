@@ -70,7 +70,7 @@ app.use("/api", apiLimiter);
 app.use(express.static(path.join(__dirname, "..")));
 
 // Servir imágenes subidas
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(process.env.UPLOADS_DIR || path.join(__dirname, "uploads")));
 
 // Servir el panel de administración
 app.use("/admin", express.static(path.join(__dirname, "../admin")));
