@@ -444,45 +444,6 @@ let products = [
   }
 ];
 
-// Copia de los productos estáticos para usar como fallback.
-const staticProducts = products.slice();
-
-// Convierte un producto del backend (API) al formato que usa el catálogo.
-function mapApiProduct(p) {
-  return {
-    code: p.codigo,
-    name: p.titulo,
-    brand: p.marca || "",
-    category: p.categoria,
-    price: `L ${parseFloat(p.precio).toFixed(2)}`,
-    wholesale: p.costo ? `L ${parseFloat(p.costo).toFixed(2)}` : "",
-    image: p.imagen || "",
-    description: p.descripcion || "",
-    available: p.disponible === 1,
-  };
-}
-
-// Carga productos desde la API y los fusiona con los estáticos.
-// Los productos de la API aparecen primero; los estáticos sin código duplicado se agregan al final.
-async function loadApiProducts() {
-  try {
-    const res = await fetch("/api/products");
-    if (!res.ok) return;
-    const apiData = await res.json();
-    if (!Array.isArray(apiData) || apiData.length === 0) return;
-
-    const apiMapped = apiData
-      .filter((p) => p.disponible !== 0)
-      .map(mapApiProduct);
-
-    const apiCodes = new Set(apiMapped.map((p) => p.code));
-    const remainingStatic = staticProducts.filter((p) => !apiCodes.has(p.code));
-    products = [...apiMapped, ...remainingStatic];
-  } catch {
-    // Si la API falla, se usan los productos estáticos (sin cambios)
-  }
-}
-
 const state = {
   search: "",
   category: "Todos",
@@ -1594,8 +1555,6 @@ async function initApp() {
   startCountdown();
   renderCart();
   toggleBackToTop();
-
-  await loadApiProducts();
 
   buildFilters();
   renderFeaturedProducts();
