@@ -29,6 +29,39 @@ const upload = multer({
   },
 });
 
+function normalizePayload(body = {}) {
+  return {
+    codigo: typeof body.codigo === "string" ? body.codigo.trim().toUpperCase() : "",
+    titulo: typeof body.titulo === "string" ? body.titulo.trim() : "",
+    descripcion: typeof body.descripcion === "string" ? body.descripcion.trim() : "",
+    categoria: typeof body.categoria === "string" ? body.categoria.trim() : "",
+    marca: typeof body.marca === "string" ? body.marca.trim() : "",
+    precio: Number.parseFloat(body.precio),
+    costo: Number.parseFloat(body.costo),
+    disponible: body.disponible,
+  };
+}
+
+function validateProductPayload(payload) {
+  if (!payload.codigo || !payload.titulo || !payload.categoria) {
+    return "Campos requeridos: codigo, titulo, precio, costo, categoria";
+  }
+
+  if (!Number.isFinite(payload.precio) || payload.precio < 0) {
+    return "El precio debe ser un número mayor o igual a 0";
+  }
+
+  if (!Number.isFinite(payload.costo) || payload.costo < 0) {
+    return "El costo debe ser un número mayor o igual a 0";
+  }
+
+  if (payload.codigo.length > 60 || payload.titulo.length > 180 || payload.categoria.length > 80) {
+    return "Los campos exceden el largo permitido";
+  }
+
+  return null;
+}
+
 // GET /api/products — público
 router.get("/", (req, res) => {
   const rows = db.prepare("SELECT * FROM products ORDER BY id DESC").all();
@@ -44,24 +77,26 @@ router.get("/:id", (req, res) => {
 
 // POST /api/products — requiere JWT
 router.post("/", requireAuth, (req, res) => {
-  const { codigo, titulo, descripcion, precio, costo, categoria, marca, disponible } = req.body;
-  if (!codigo || !titulo || precio == null || costo == null || !categoria) {
-    return res.status(400).json({ error: "Campos requeridos: codigo, titulo, precio, costo, categoria" });
+  const payload = normalizePayload(req.body);
+  const validationError = validateProductPayload(payload);
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
   }
+
   try {
     const stmt = db.prepare(`
       INSERT INTO products (codigo, titulo, descripcion, precio, costo, categoria, marca, disponible)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
     const info = stmt.run(
-      codigo,
-      titulo,
-      descripcion || "",
-      parseFloat(precio),
-      parseFloat(costo),
-      categoria,
-      marca || "",
-      disponible === false || disponible === "0" ? 0 : 1
+      payload.codigo,
+      payload.titulo,
+      payload.descripcion,
+      payload.precio,
+      payload.costo,
+      payload.categoria,
+      payload.marca,
+      payload.disponible === false || payload.disponible === "0" ? 0 : 1
     );
     const created = db.prepare("SELECT * FROM products WHERE id = ?").get(info.lastInsertRowid);
     res.status(201).json(created);
@@ -75,7 +110,12 @@ router.post("/", requireAuth, (req, res) => {
 
 // PUT /api/products/:id — requiere JWT
 router.put("/:id", requireAuth, (req, res) => {
-  const { codigo, titulo, descripcion, precio, costo, categoria, marca, disponible } = req.body;
+  const payload = normalizePayload(req.body);
+  const validationError = validateProductPayload(payload);
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
   const existing = db.prepare("SELECT id FROM products WHERE id = ?").get(req.params.id);
   if (!existing) return res.status(404).json({ error: "Producto no encontrado" });
 
@@ -85,14 +125,14 @@ router.put("/:id", requireAuth, (req, res) => {
       SET codigo = ?, titulo = ?, descripcion = ?, precio = ?, costo = ?, categoria = ?, marca = ?, disponible = ?
       WHERE id = ?
     `).run(
-      codigo,
-      titulo,
-      descripcion || "",
-      parseFloat(precio),
-      parseFloat(costo),
-      categoria,
-      marca || "",
-      disponible === false || disponible === "0" ? 0 : 1,
+      payload.codigo,
+      payload.titulo,
+      payload.descripcion,
+      payload.precio,
+      payload.costo,
+      payload.categoria,
+      payload.marca,
+      payload.disponible === false || payload.disponible === "0" ? 0 : 1,
       req.params.id
     );
     const updated = db.prepare("SELECT * FROM products WHERE id = ?").get(req.params.id);

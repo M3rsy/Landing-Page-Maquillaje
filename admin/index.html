@@ -499,9 +499,16 @@
 
   <script>
     // ── Redirect si ya hay sesión ──
-    if (localStorage.getItem("jrv_token")) {
-      window.location.href = "dashboard.html";
-    }
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "same-origin" });
+        if (res.ok) {
+          window.location.href = "dashboard.html";
+        }
+      } catch {
+        // Si falla la verificación, el usuario permanece en login.
+      }
+    })();
 
     // ── Toggle contraseña ──
     const pwdInput  = document.getElementById("password");
@@ -550,6 +557,7 @@
       try {
         const res = await fetch("/api/auth/login", {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             usuario: document.getElementById("usuario").value.trim(),
@@ -559,8 +567,6 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Credenciales incorrectas");
 
-        localStorage.setItem("jrv_token",   data.token);
-        localStorage.setItem("jrv_usuario", data.usuario);
         window.location.href = "dashboard.html";
       } catch (err) {
         showError(err.message);

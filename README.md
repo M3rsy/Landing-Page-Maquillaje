@@ -96,6 +96,13 @@ npm start
 
 El panel de administracion queda en `http://localhost:3000/admin/`.
 
+### Sesion del panel admin
+
+- El login ahora usa cookie `HttpOnly` (no se guarda token en `localStorage`).
+- Endpoint de verificacion de sesion: `GET /api/auth/me`.
+- Endpoint de cierre de sesion: `POST /api/auth/logout`.
+- Healthcheck operativo: `GET /health`.
+
 ### Datos runtime (base local y uploads)
 
 - `backend/jrv.db` se genera en runtime (base SQLite local).
@@ -109,4 +116,8 @@ El panel de administracion queda en `http://localhost:3000/admin/`.
 | `JWT_SECRET` | Si | Secreto para firmar tokens JWT. Minimo 32 caracteres. |
 | `PORT` | No | Puerto del servidor (default: 3000). |
 | `CORS_ORIGIN` | No | Origenes CORS separados por coma. Vacio = mismo dominio. |
+| `AUTH_TOKEN_TTL_HOURS` | No | Duracion del token/cookie admin en horas (default: 8). |
+| `AUTH_COOKIE_SAMESITE` | No | `lax` (default), `strict` o `none`. |
+| `AUTH_COOKIE_SECURE` | No | `true`/`false` para forzar flag Secure de la cookie. |
+| `AUTH_COOKIE_DOMAIN` | No | Dominio explicito para la cookie admin. |
 | `ADMIN_PASSWORD` | Solo setup | Contrasena para `create-admin.js`. No necesaria despues. |

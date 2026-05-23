@@ -1,25 +1,42 @@
-// Verificar sesión
-const token = localStorage.getItem("jrv_token");
-if (!token) window.location.href = "index.html";
-
-const usuario = localStorage.getItem("jrv_usuario") || "Admin";
-document.getElementById("adminName").textContent = usuario;
-document.getElementById("navAvatar").textContent = usuario.slice(0, 2).toUpperCase();
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  localStorage.removeItem("jrv_token");
-  localStorage.removeItem("jrv_usuario");
+function redirectToLogin() {
   window.location.href = "index.html";
-});
+}
+
+async function apiFetch(url, options = {}) {
+  const response = await fetch(url, {
+    credentials: "same-origin",
+    ...options,
+  });
+
+  if (response.status === 401) {
+    redirectToLogin();
+    throw new Error("Sesión expirada. Inicia sesión de nuevo.");
+  }
+
+  return response;
+}
+
+async function ensureSession() {
+  try {
+    const res = await apiFetch("/api/auth/me");
+    if (!res.ok) {
+      redirectToLogin();
+      return null;
+    }
+
+    const data = await res.json();
+    return data.usuario || "Admin";
+  } catch {
+    redirectToLogin();
+    return null;
+  }
+}
 
 // --- Estado global ---
 let allProducts = [];
 let editingId = null;
 
 // --- Helpers ---
-function authHeaders() {
-  return { Authorization: `Bearer ${token}` };
-}
-
 function formatPrice(n) {
   return `L ${parseFloat(n).toFixed(2)}`;
 }
@@ -36,7 +53,7 @@ function showFormMsg(type, msg) {
 // --- Cargar productos ---
 async function loadProducts() {
   try {
-    const res = await fetch("/api/products");
+    const res = await apiFetch("/api/products");
     if (!res.ok) throw new Error("Error cargando productos");
     allProducts = await res.json();
     renderTable(allProducts);
@@ -110,10 +127,17 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
     const method = editingId ? "PUT" : "POST";
 
     const res = await fetch(url, {
+      credentials: "same-origin",
       method,
-      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+
+    if (res.status === 401) {
+      redirectToLogin();
+      return;
+    }
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Error al guardar");
 
@@ -122,9 +146,8 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
     if (imgFile) {
       const fd = new FormData();
       fd.append("imagen", imgFile);
-      const imgRes = await fetch(`/api/products/${data.id}/image`, {
+      const imgRes = await apiFetch(`/api/products/${data.id}/image`, {
         method: "POST",
-        headers: authHeaders(),
         body: fd,
       });
       if (!imgRes.ok) {
@@ -181,9 +204,8 @@ document.getElementById("cancelEditBtn").addEventListener("click", cancelEdit);
 async function deleteProduct(id, nombre) {
   if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
   try {
-    const res = await fetch(`/api/products/${id}`, {
+    const res = await apiFetch(`/api/products/${id}`, {
       method: "DELETE",
-      headers: authHeaders(),
     });
     if (!res.ok) {
       const data = await res.json();
@@ -195,5 +217,21 @@ async function deleteProduct(id, nombre) {
   }
 }
 
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  try {
+    await apiFetch("/api/auth/logout", { method: "POST" });
+  } catch {
+    // Si falla el logout en el backend, igual redirigimos para cortar sesión en UI.
+  } finally {
+    redirectToLogin();
+  }
+});
+
 // Cargar al iniciar
-loadProducts();
+(async () => {
+  const usuario = await ensureSession();
+  if (!usuario) return;
+  document.getElementById("adminName").textContent = usuario;
+  document.getElementById("navAvatar").textContent = usuario.slice(0, 2).toUpperCase();
+  await loadProducts();
+})();
