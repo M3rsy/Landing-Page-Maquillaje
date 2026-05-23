@@ -28,7 +28,7 @@ Modo observador mientras editas:
 powershell -ExecutionPolicy Bypass -File scripts/watch-css.ps1
 ```
 
-`index.html` carga `assets/css/styles.css`, por eso los cambios de diseno deben hacerse en `assets/css/input.css` y luego compilar.
+`index.html` carga `assets/css/styles.min.css` y `assets/js/script.min.js`, por eso los cambios deben hacerse en los archivos fuente (`assets/css/input.css` y `assets/js/script.js`) y luego compilar/minificar.
 
 ## Agregar videos de Instagram
 
