@@ -3,6 +3,7 @@ tools/tailwindcss.exe
 backend/*.db-shm
 backend/*.db-wal
 backend/*.db
+backend/*.db.backup.*
 backend/uploads/*
 !backend/uploads/.gitkeep
 .env
