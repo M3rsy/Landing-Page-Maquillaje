@@ -1,3 +1,6 @@
+// Load .env before any process.env consumer — must be the first import.
+require("./env");
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
