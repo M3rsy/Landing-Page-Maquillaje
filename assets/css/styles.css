@@ -1523,8 +1523,7 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: linear-gradient(180deg, #fff, var(--surface-soft));
-  -o-object-fit: contain;
-     object-fit: contain;
+  object-fit: contain;
 }
 
 .share-textarea {
