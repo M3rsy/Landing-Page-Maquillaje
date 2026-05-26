@@ -10,8 +10,10 @@ const FEATURED_CODES = ["LQBL-PT", "DBJ-SET", "KC245123", "KC230005"];
 const SOLD_OUT_CODES = [];
 const PROMO_STORAGE_KEY = "jrvPromoShownDate";
 
-// Array estático de productos (fallback si la API no está disponible).
-let products = [
+// FALLBACK_PRODUCTS: dead-code safety constant kept for one release cycle.
+// Not used as the primary runtime source. Restore as `products` and rebuild
+// minified bundle to roll back if the API is unavailable.
+const FALLBACK_PRODUCTS = [
   {
     code: "LQBL-PT",
     name: "Liquid Blush Display",
@@ -443,6 +445,11 @@ let products = [
     description: "Contorno en crema Enigmatic Goddess. Esculpe y define el rostro con precision. Textura cremosa y facil de difuminar. 4 tonos. 4.3 g."
   }
 ];
+
+// Primary product source — populated at init time by fetchProducts().
+// Starts as an empty array; downstream consumers (buildFilters, renderProducts,
+// etc.) remain unchanged because they all read this variable by reference.
+let products = [];
 
 const state = {
   search: "",
@@ -1549,12 +1556,61 @@ if (clearFilters) {
   clearFilters.addEventListener("click", resetFilters);
 }
 
+/**
+ * Maps a raw API product row to the normalized UI shape consumed by all
+ * downstream renderers, filters, and cart logic.
+ *
+ * API row: { id, codigo, titulo, descripcion, precio, costo,
+ *            categoria, marca, imagen, disponible, creado_en }
+ *
+ * UI shape: { code, name, description, category, brand,
+ *             price, wholesale, image, status }
+ */
+function normalizeApiProduct(row) {
+  const isSoldOut =
+    row.disponible === 0 ||
+    row.disponible === "0" ||
+    row.disponible === false ||
+    row.disponible === "false";
+
+  return {
+    code:        row.codigo,
+    name:        row.titulo,
+    description: row.descripcion || "",
+    category:    row.categoria,
+    brand:       row.marca || "",
+    price:       formatLempiras(Number(row.precio) || 0),
+    wholesale:   formatLempiras(Number(row.costo) || 0),
+    image:       row.imagen || `assets/productos/${row.codigo}.png`,
+    status:      isSoldOut ? "soldout" : "available"
+  };
+}
+
+/**
+ * Fetches the product catalog from the backend API.
+ * Returns a normalized array on success, or [] on network/HTTP failure
+ * (non-blocking — the page renders an empty state instead of crashing).
+ */
+async function fetchProducts() {
+  try {
+    const response = await fetch("/api/products");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const rows = await response.json();
+    return rows.map(normalizeApiProduct);
+  } catch (error) {
+    console.warn("[catalog] API unavailable, showing empty state:", error.message);
+    return [];
+  }
+}
+
 async function initApp() {
   document.querySelector("#currentYear").textContent = new Date().getFullYear();
   setGeneralWhatsappLinks();
   startCountdown();
   renderCart();
   toggleBackToTop();
+
+  products = await fetchProducts();
 
   buildFilters();
   renderFeaturedProducts();
