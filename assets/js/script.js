@@ -591,8 +591,10 @@ const getCartUnits = () => getCartEntries().reduce((total, entry) => total + ent
 const getCartRetailTotal = () =>
   getCartEntries().reduce((total, entry) => total + parsePrice(entry.product.price) * entry.quantity, 0);
 
+const getWholesalePriceLabel = (product) => product.wholesale || product.price;
+
 const getCartWholesaleTotal = () =>
-  getCartEntries().reduce((total, entry) => total + parsePrice(entry.product.wholesale) * entry.quantity, 0);
+  getCartEntries().reduce((total, entry) => total + parsePrice(getWholesalePriceLabel(entry.product)) * entry.quantity, 0);
 
 const isCartWholesaleEligible = () => getCartRetailTotal() >= WHOLESALE_THRESHOLD;
 
@@ -821,7 +823,7 @@ function renderProductCard(product, options = {}) {
         <p class="product-description">${escapeHtml(product.description)}</p>
         <div class="price-row">
           <span class="price">${escapeHtml(product.price)}</span>
-          <span class="wholesale">Mayoreo ${escapeHtml(product.wholesale)}</span>
+          ${product.wholesale ? `<span class="wholesale">Mayoreo ${escapeHtml(product.wholesale)}</span>` : ""}
         </div>
         <div class="product-actions">
           <button
@@ -922,7 +924,7 @@ function buildCartMessage() {
   const lines = entries
     .map(
       ({ product, quantity }) => {
-        const unitPrice = wholesaleApplies ? product.wholesale : product.price;
+        const unitPrice = wholesaleApplies ? getWholesalePriceLabel(product) : product.price;
         const priceLabel = wholesaleApplies ? "mayoreo" : "detalle";
         return `- ${quantity} x ${product.code} ${product.name} (${unitPrice} ${priceLabel})`;
       }
@@ -1039,7 +1041,7 @@ function renderCart() {
     ? entries
         .map(
           ({ product, quantity }) => {
-            const unitPrice = wholesaleApplies ? product.wholesale : product.price;
+            const unitPrice = wholesaleApplies ? getWholesalePriceLabel(product) : product.price;
             const priceLabel = wholesaleApplies ? "mayoreo" : "detalle";
             return `
               <article class="cart-item">
@@ -1138,7 +1140,7 @@ function buildProductShareText(product) {
     product.description,
     ``,
     `Precio detalle: ${product.price}`,
-    `Precio mayoreo: ${product.wholesale}`,
+    product.wholesale ? `Precio mayoreo: ${product.wholesale}` : "",
     ``,
     `Disponible para pedido por WhatsApp.`
   ];
@@ -1560,7 +1562,7 @@ if (clearFilters) {
  * Maps a raw API product row to the normalized UI shape consumed by all
  * downstream renderers, filters, and cart logic.
  *
- * API row: { id, codigo, titulo, descripcion, precio, costo,
+ * API row: { id, codigo, titulo, descripcion, precio, precio_mayorista,
  *            categoria, marca, imagen, disponible, creado_en }
  *
  * UI shape: { code, name, description, category, brand,
@@ -1580,7 +1582,9 @@ function normalizeApiProduct(row) {
     category:    row.categoria,
     brand:       row.marca || "",
     price:       formatLempiras(Number(row.precio) || 0),
-    wholesale:   formatLempiras(Number(row.costo) || 0),
+    wholesale:   Number.isFinite(Number(row.precio_mayorista))
+      ? formatLempiras(Number(row.precio_mayorista))
+      : null,
     image:       row.imagen || `assets/productos/${row.codigo}.png`,
     status:      isSoldOut ? "soldout" : "available"
   };

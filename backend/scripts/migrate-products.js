@@ -10,11 +10,15 @@
 
 const db = require("../database");
 
-// Agregar columna 'marca' si no existe (SQLite no tiene IF NOT EXISTS en ALTER TABLE)
+// Agregar columnas opcionales si no existen (SQLite no tiene IF NOT EXISTS en ALTER TABLE)
 const columns = db.pragma("table_info(products)").map((c) => c.name);
 if (!columns.includes("marca")) {
   db.exec("ALTER TABLE products ADD COLUMN marca TEXT DEFAULT ''");
   console.log("Columna 'marca' agregada a la tabla products.");
+}
+if (!columns.includes("precio_mayorista")) {
+  db.exec("ALTER TABLE products ADD COLUMN precio_mayorista REAL");
+  console.log("Columna 'precio_mayorista' agregada a la tabla products.");
 }
 
 const parsePrice = (str) => parseFloat(str.replace("L ", "").trim()) || 0;
@@ -66,8 +70,8 @@ const products = [
 ];
 
 const stmt = db.prepare(`
-  INSERT OR IGNORE INTO products (codigo, titulo, descripcion, precio, costo, categoria, marca, imagen, disponible)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+  INSERT OR IGNORE INTO products (codigo, titulo, descripcion, precio, costo, precio_mayorista, categoria, marca, imagen, disponible)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
 `);
 
 const migrate = db.transaction(() => {
@@ -79,6 +83,7 @@ const migrate = db.transaction(() => {
       p.name,
       p.description,
       parsePrice(p.price),
+      0,
       parsePrice(p.wholesale),
       p.category,
       p.brand,

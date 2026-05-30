@@ -28,6 +28,14 @@ db.exec(`
   );
 `);
 
+const productColumns = db
+  .prepare("PRAGMA table_info(products)")
+  .all()
+  .map((column) => column.name);
+if (!productColumns.includes("precio_mayorista")) {
+  db.exec("ALTER TABLE products ADD COLUMN precio_mayorista REAL");
+}
+
 // Verificar que existe al menos un usuario admin
 const existing = db.prepare("SELECT id FROM admin_users WHERE usuario = ?").get("admin");
 if (!existing) {

@@ -53,7 +53,7 @@ function showFormMsg(type, msg) {
 // --- Cargar productos ---
 async function loadProducts() {
   try {
-    const res = await apiFetch("/api/products");
+    const res = await apiFetch("/api/products/admin/list");
     if (!res.ok) throw new Error("Error cargando productos");
     allProducts = await res.json();
     renderTable(allProducts);
@@ -117,6 +117,7 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
     descripcion: form.descripcion.value.trim(),
     precio: form.precio.value,
     costo: form.costo.value,
+    precio_mayorista: form.precio_mayorista.value === "" ? null : form.precio_mayorista.value,
     categoria: form.categoria.value,
     marca: form.marca.value.trim(),
     disponible: form.disponible.checked ? 1 : 0,
@@ -179,6 +180,7 @@ function startEdit(id) {
   document.getElementById("descripcion").value = p.descripcion || "";
   document.getElementById("precio").value = p.precio;
   document.getElementById("costo").value = p.costo;
+  document.getElementById("precio_mayorista").value = p.precio_mayorista ?? "";
   document.getElementById("categoria").value = p.categoria;
   document.getElementById("marca").value = p.marca || "";
   document.getElementById("disponible").checked = !!p.disponible;
