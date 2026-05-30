@@ -74,6 +74,41 @@ Copiar `.env.example` como `.env` y completar:
 | `DB_PATH` | No | Ruta al archivo SQLite (default: `backend/jrv.db`) |
 | `UPLOADS_DIR` | No | Directorio de uploads (default: `backend/uploads`) |
 
+### Flujo admin -> API -> frontend (catálogo)
+
+Ruta corta para mantenimiento del flujo de productos.
+
+1. Admin inicia sesión en `/admin/` (`POST /api/auth/login`), el backend valida credenciales en `admin_users` y guarda JWT en cookie httpOnly.
+2. Dashboard carga productos con `GET /api/products/admin/list` (autenticado), permite crear/editar (`POST`/`PUT /api/products/:id`) y eliminar (`DELETE /api/products/:id`).
+3. Si se adjunta imagen, admin sube archivo con `POST /api/products/:id/image` (`multipart/form-data`, campo `imagen`), se guarda en disco y se persiste la URL en DB.
+4. Frontend público consume `GET /api/products` al cargar `/`, normaliza la respuesta y renderiza catálogo/estado sin exponer costo interno.
+
+**Persistencia (SQLite)**
+- DB en `DB_PATH` (default `backend/jrv.db`), tabla principal `products`; `node:sqlite` en modo WAL.
+- El backend crea tablas al iniciar (`products`, `admin_users`) y agrega `precio_mayorista` si falta.
+
+**Límites de API (público vs admin)**
+- Público: `GET /api/products`, `GET /api/products/:id` (sin JWT, incluye `precio` y `precio_mayorista`, no incluye `costo`).
+- Admin (JWT requerido): `GET /api/products/admin/list`, `POST/PUT/DELETE /api/products`, `POST /api/products/:id/image`.
+
+**Semántica de campos de producto**
+
+| Campo | Significado operativo |
+|------|------------------------|
+| `precio` | Precio de venta al cliente final (visible en frontend). |
+| `costo` | Costo interno del negocio (solo admin/list y escritura admin). |
+| `precio_mayorista` | Precio por volumen; puede ser `null` y el frontend lo trata como opcional. |
+| `imagen` | Ruta de imagen en catálogo (`/uploads/<archivo>` o asset estático). |
+| `disponible` | Disponibilidad lógica (`1/0` en SQLite) que frontend mapea a `available/soldout`. |
+
+**Uploads y serving de imágenes**
+- Upload físico: `UPLOADS_DIR` (default `backend/uploads`), tamaño máximo 5 MB, solo MIME `image/*`.
+- Serving público: `GET /uploads/*` por `express.static`; el `imagen` guardado en DB se publica tal cual en el catálogo.
+
+**Bootstrap recomendado**
+- `npm run seed:products`: sincroniza catálogo base por `codigo` (idempotente), conserva `precio/costo/precio_mayorista/disponible` en productos ya existentes.
+- `npm run create-admin`: crea o actualiza usuario `admin` usando `ADMIN_PASSWORD`.
+
 ### Deploy con Docker
 
 ```bash
