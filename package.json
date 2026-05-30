@@ -19,7 +19,9 @@
     "bump:assets": "node scripts/bump-asset-version.mjs",
     "build": "npm run build:css:npm && npm run build:js",
     "check:html": "htmlhint index.html",
-    "check:js": "node --check assets/js/script.js && node --check assets/js/script.min.js"
+    "check:js": "node --check assets/js/script.js && node --check assets/js/script.min.js",
+    "test:smoke": "playwright test",
+    "test:smoke:ui": "playwright test --ui"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -30,6 +32,7 @@
     "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "htmlhint": "^1.1.4",
     "tailwindcss": "^3.4.17",
     "terser": "^5.31.6"
