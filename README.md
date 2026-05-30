@@ -41,6 +41,22 @@ Para desarrollo con recarga automática:
 npm run dev
 ```
 
+### Smoke tests (Playwright)
+
+Pruebas mínimas de humo para el catálogo público (`/`): carga base, fallback de API y visibilidad de precio mayorista.
+La suite mockea `/api/products`, por lo que no depende de datos sembrados en DB.
+
+```bash
+# Instalar navegador de Playwright (solo la primera vez)
+npx playwright install chromium
+
+# Ejecutar smoke suite en Chromium
+npm run test:smoke
+
+# Abrir runner interactivo
+npm run test:smoke:ui
+```
+
 ### Variables de entorno
 
 Copiar `.env.example` como `.env` y completar:
