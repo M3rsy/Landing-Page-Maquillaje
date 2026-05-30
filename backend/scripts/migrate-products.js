@@ -1,17 +1,25 @@
 /**
- * Migración: importa los productos del catálogo estático a la base de datos.
+ * Seed de productos: sincroniza el catálogo estático hacia SQLite.
  *
  * Uso:
+ *   npm run seed:products
  *   node backend/scripts/migrate-products.js
  *
- * - Usa INSERT OR IGNORE: no duplica productos que ya existan (por código).
- * - Agrega la columna 'marca' a la tabla si todavía no existe.
+ * - Idempotente para bootstrap por `codigo`.
+ * - No elimina filas extra creadas manualmente.
+ * - En productos existentes, conserva campos administrados por negocio (precio/costo/mayorista/disponible).
  */
+
+// Load .env before any process.env consumer — must be the first import.
+require("../env");
 
 const db = require("../database");
 
 // Agregar columnas opcionales si no existen (SQLite no tiene IF NOT EXISTS en ALTER TABLE)
-const columns = db.pragma("table_info(products)").map((c) => c.name);
+const columns = db
+  .prepare("PRAGMA table_info(products)")
+  .all()
+  .map((c) => c.name);
 if (!columns.includes("marca")) {
   db.exec("ALTER TABLE products ADD COLUMN marca TEXT DEFAULT ''");
   console.log("Columna 'marca' agregada a la tabla products.");
@@ -69,35 +77,50 @@ const products = [
   { code: "TBR24-F3ASS",     name: "Contour Enigmatic Goddess Assorted",          brand: "Totemica",        category: "Rostro",            price: "L 340.00", wholesale: "L 235.00", image: "assets/optimized/productos/TBR24-F3ASS.webp",    description: "Contorno en crema Enigmatic Goddess. Esculpe y define el rostro con precision. Textura cremosa y facil de difuminar. 4 tonos. 4.3 g." },
 ];
 
+const findByCode = db.prepare("SELECT id FROM products WHERE codigo = ?");
 const stmt = db.prepare(`
-  INSERT OR IGNORE INTO products (codigo, titulo, descripcion, precio, costo, precio_mayorista, categoria, marca, imagen, disponible)
+  INSERT INTO products (codigo, titulo, descripcion, precio, costo, precio_mayorista, categoria, marca, imagen, disponible)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+  ON CONFLICT(codigo) DO UPDATE SET
+    titulo = excluded.titulo,
+    descripcion = excluded.descripcion,
+    categoria = excluded.categoria,
+    marca = excluded.marca,
+    imagen = excluded.imagen
 `);
 
-const migrate = db.transaction(() => {
+function migrate() {
   let inserted = 0;
-  let skipped = 0;
-  for (const p of products) {
-    const info = stmt.run(
-      p.code,
-      p.name,
-      p.description,
-      parsePrice(p.price),
-      0,
-      parsePrice(p.wholesale),
-      p.category,
-      p.brand,
-      p.image
-    );
-    if (info.changes > 0) {
-      inserted++;
-    } else {
-      skipped++;
+  let updated = 0;
+  db.exec("BEGIN");
+  try {
+    for (const p of products) {
+      const existed = Boolean(findByCode.get(p.code));
+      const info = stmt.run(
+        p.code,
+        p.name,
+        p.description,
+        parsePrice(p.price),
+        0,
+        parsePrice(p.wholesale),
+        p.category,
+        p.brand,
+        p.image
+      );
+      if (info.changes > 0 && !existed) {
+        inserted++;
+      } else if (info.changes > 0 && existed) {
+        updated++;
+      }
     }
+    db.exec("COMMIT");
+    return { inserted, updated };
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
   }
-  return { inserted, skipped };
-});
+}
 
-const { inserted, skipped } = migrate();
-console.log(`Migración completada: ${inserted} productos insertados, ${skipped} ya existían (omitidos).`);
+const { inserted, updated } = migrate();
+console.log(`Seed completado: ${inserted} insertados, ${updated} actualizados.`);
 process.exit(0);

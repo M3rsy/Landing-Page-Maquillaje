@@ -20,11 +20,15 @@ npm ci
 cp .env.example .env
 # Editar .env con los valores reales (JWT_SECRET es obligatorio)
 
-# 3. Crear el usuario admin (solo la primera vez)
+# 3. Seed del catálogo base de productos (idempotente para bootstrap)
+npm run seed:products
+# Nota: en productos existentes conserva precio/costo/precio mayorista/disponibilidad.
+
+# 4. Crear el usuario admin (solo la primera vez)
 # Agrega ADMIN_PASSWORD en .env, luego:
 npm run create-admin
 
-# 4. Iniciar el servidor (carga .env automáticamente)
+# 5. Iniciar el servidor (carga .env automáticamente)
 npm start
 # → http://localhost:3000
 # → http://localhost:3000/admin/
