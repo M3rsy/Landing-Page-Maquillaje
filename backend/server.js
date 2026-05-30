@@ -4,6 +4,7 @@ require("./env");
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const multer = require("multer");
 const rateLimit = require("express-rate-limit");
 
 const authRoutes = require("./routes/auth");
@@ -94,6 +95,18 @@ app.get("/{*path}", (req, res) => {
 app.use((err, req, res, next) => {
   if (err?.message && err.message.startsWith("CORS:")) {
     return res.status(403).json({ error: err.message });
+  }
+
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({ error: "La imagen excede el tamaño máximo permitido (5MB)" });
+    }
+
+    return res.status(400).json({ error: "Error al procesar la subida de imagen" });
+  }
+
+  if (err?.message === "Solo se permiten imágenes") {
+    return res.status(400).json({ error: err.message });
   }
 
   if (err?.type === "entity.too.large") {
