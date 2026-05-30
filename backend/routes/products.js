@@ -30,6 +30,11 @@ const upload = multer({
 });
 
 function normalizePayload(body = {}) {
+  const precioMayoristaRaw =
+    body.precio_mayorista === "" || body.precio_mayorista === null || body.precio_mayorista === undefined
+      ? null
+      : Number.parseFloat(body.precio_mayorista);
+
   return {
     codigo: typeof body.codigo === "string" ? body.codigo.trim().toUpperCase() : "",
     titulo: typeof body.titulo === "string" ? body.titulo.trim() : "",
@@ -38,6 +43,7 @@ function normalizePayload(body = {}) {
     marca: typeof body.marca === "string" ? body.marca.trim() : "",
     precio: Number.parseFloat(body.precio),
     costo: Number.parseFloat(body.costo),
+    precio_mayorista: precioMayoristaRaw,
     disponible: body.disponible,
   };
 }
@@ -55,6 +61,10 @@ function validateProductPayload(payload) {
     return "El costo debe ser un número mayor o igual a 0";
   }
 
+  if (payload.precio_mayorista !== null && (!Number.isFinite(payload.precio_mayorista) || payload.precio_mayorista < 0)) {
+    return "El precio mayorista debe ser un número mayor o igual a 0";
+  }
+
   if (payload.codigo.length > 60 || payload.titulo.length > 180 || payload.categoria.length > 80) {
     return "Los campos exceden el largo permitido";
   }
@@ -64,13 +74,27 @@ function validateProductPayload(payload) {
 
 // GET /api/products — público
 router.get("/", (req, res) => {
+  const rows = db.prepare(`
+    SELECT id, codigo, titulo, descripcion, precio, precio_mayorista, categoria, marca, imagen, disponible, creado_en
+    FROM products
+    ORDER BY id DESC
+  `).all();
+  res.json(rows);
+});
+
+// GET /api/products/admin — requiere JWT
+router.get("/admin/list", requireAuth, (req, res) => {
   const rows = db.prepare("SELECT * FROM products ORDER BY id DESC").all();
   res.json(rows);
 });
 
 // GET /api/products/:id — público
 router.get("/:id", (req, res) => {
-  const row = db.prepare("SELECT * FROM products WHERE id = ?").get(req.params.id);
+  const row = db.prepare(`
+    SELECT id, codigo, titulo, descripcion, precio, precio_mayorista, categoria, marca, imagen, disponible, creado_en
+    FROM products
+    WHERE id = ?
+  `).get(req.params.id);
   if (!row) return res.status(404).json({ error: "Producto no encontrado" });
   res.json(row);
 });
@@ -85,8 +109,8 @@ router.post("/", requireAuth, (req, res) => {
 
   try {
     const stmt = db.prepare(`
-      INSERT INTO products (codigo, titulo, descripcion, precio, costo, categoria, marca, disponible)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO products (codigo, titulo, descripcion, precio, costo, precio_mayorista, categoria, marca, disponible)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     const info = stmt.run(
       payload.codigo,
@@ -94,6 +118,7 @@ router.post("/", requireAuth, (req, res) => {
       payload.descripcion,
       payload.precio,
       payload.costo,
+      payload.precio_mayorista,
       payload.categoria,
       payload.marca,
       payload.disponible === false || payload.disponible === "0" ? 0 : 1
@@ -122,7 +147,7 @@ router.put("/:id", requireAuth, (req, res) => {
   try {
     db.prepare(`
       UPDATE products
-      SET codigo = ?, titulo = ?, descripcion = ?, precio = ?, costo = ?, categoria = ?, marca = ?, disponible = ?
+      SET codigo = ?, titulo = ?, descripcion = ?, precio = ?, costo = ?, precio_mayorista = ?, categoria = ?, marca = ?, disponible = ?
       WHERE id = ?
     `).run(
       payload.codigo,
@@ -130,6 +155,7 @@ router.put("/:id", requireAuth, (req, res) => {
       payload.descripcion,
       payload.precio,
       payload.costo,
+      payload.precio_mayorista,
       payload.categoria,
       payload.marca,
       payload.disponible === false || payload.disponible === "0" ? 0 : 1,
