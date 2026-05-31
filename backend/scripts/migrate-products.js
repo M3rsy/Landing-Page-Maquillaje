@@ -2,8 +2,10 @@
  * Seed de productos: sincroniza el catálogo estático hacia SQLite.
  *
  * Uso:
- *   npm run seed:products
- *   node backend/scripts/migrate-products.js
+ *   node backend/scripts/migrate-products.js          # Upsert seed data (default)
+ *   node backend/scripts/migrate-products.js --prune   # Remove products not in seed data
+ *   node backend/scripts/migrate-products.js --dry-run # Preview what --prune would delete
+ *   node backend/scripts/migrate-products.js --prune --yes # Skip confirmation prompt
  *
  * - Idempotente para bootstrap por `codigo`.
  * - No elimina filas extra creadas manualmente.
@@ -14,6 +16,8 @@
 require("../env");
 
 const db = require("../database");
+const fs = require("fs");
+const path = require("path");
 
 // Agregar columnas opcionales si no existen (SQLite no tiene IF NOT EXISTS en ALTER TABLE)
 const columns = db
@@ -98,6 +102,15 @@ function estimateCost(p) {
                        : Math.round(price * 0.65 * 100) / 100;
 }
 
+function parseFlags() {
+  const args = process.argv.slice(2);
+  return {
+    prune: args.includes("--prune") || args.includes("--dry-run"),
+    dryRun: args.includes("--dry-run"),
+    yes: args.includes("--yes"),
+  };
+}
+
 function migrate() {
   let inserted = 0;
   let updated = 0;
@@ -130,6 +143,77 @@ function migrate() {
   }
 }
 
-const { inserted, updated } = migrate();
-console.log(`Seed completado: ${inserted} insertados, ${updated} actualizados.`);
+function deleteImageFile(imagen) {
+  if (!imagen) return;
+  const fullPath = path.join(__dirname, "..", imagen);
+  try {
+    fs.unlinkSync(fullPath);
+    return true;
+  } catch (err) {
+    if (err.code === "ENOENT") return false;
+    console.warn(`  No se pudo eliminar ${fullPath}: ${err.message}`);
+    return false;
+  }
+}
+
+function askContinue(question) {
+  process.stdout.write(question);
+  const buffer = Buffer.alloc(256);
+  const bytesRead = fs.readSync(0, buffer, 0, 256);
+  const answer = buffer.toString("utf8", 0, bytesRead).trim();
+  return answer.toLowerCase().startsWith("y");
+}
+
+function prune(db, products, flags) {
+  const seedCodes = new Set(products.map((p) => p.code));
+  const rows = db.prepare("SELECT id, codigo, titulo, imagen FROM products").all();
+  const orphans = rows.filter((r) => !seedCodes.has(r.codigo));
+
+  if (orphans.length === 0) {
+    console.log("No hay productos huérfanos para eliminar.");
+    return 0;
+  }
+
+  if (flags.dryRun) {
+    console.log("[DRY RUN] Se eliminarían los siguientes productos:");
+    for (const o of orphans) {
+      console.log(`  - ${o.codigo}: ${o.titulo}`);
+    }
+    console.log(`${orphans.length} productos serían eliminados. Usa --prune --yes para ejecutar.`);
+    return orphans.length;
+  }
+
+  if (!flags.yes) {
+    const ok = askContinue(`Se eliminarán ${orphans.length} productos y sus imágenes. ¿Continuar? (y/N) `);
+    if (!ok) {
+      console.log("Operación cancelada.");
+      process.exit(0);
+    }
+  }
+
+  db.exec("BEGIN");
+  let deleted = 0;
+  try {
+    const delStmt = db.prepare("DELETE FROM products WHERE id = ?");
+    for (const o of orphans) {
+      delStmt.run(o.id);
+      deleteImageFile(o.imagen);
+      deleted++;
+    }
+    db.exec("COMMIT");
+    console.log(`${deleted} productos eliminados`);
+    return deleted;
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+}
+
+const flags = parseFlags();
+if (flags.prune) {
+  prune(db, products, flags);
+} else {
+  const { inserted, updated } = migrate();
+  console.log(`Seed completado: ${inserted} insertados, ${updated} actualizados.`);
+}
 process.exit(0);
