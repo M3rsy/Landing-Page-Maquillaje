@@ -59,7 +59,7 @@ async function loadProducts() {
     renderTable(allProducts);
   } catch (err) {
     document.getElementById("productsBody").innerHTML =
-      `<tr><td colspan="8" class="empty-row error-row">Error: ${err.message}</td></tr>`;
+      `<tr><td colspan="9" class="empty-row error-row">Error: ${err.message}</td></tr>`;
   }
 }
 
@@ -69,7 +69,7 @@ function renderTable(products) {
   document.getElementById("productCount").textContent = products.length;
 
   if (products.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-row">No hay productos aún. ¡Agrega el primero!</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-row">No hay productos aún. ¡Agrega el primero!</td></tr>`;
     return;
   }
 
@@ -84,6 +84,7 @@ function renderTable(products) {
       <td>${p.titulo}</td>
       <td><span class="badge-cat">${p.categoria}</span></td>
       <td>${formatPrice(p.precio)}</td>
+      <td>${p.precio_mayorista != null ? formatPrice(p.precio_mayorista) : '—'}</td>
       <td class="col-costo">${formatPrice(p.costo)}</td>
       <td>${p.disponible ? '<span class="badge-ok">Disponible</span>' : '<span class="badge-off">Agotado</span>'}</td>
       <td class="col-actions">
@@ -157,7 +158,11 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
       }
     }
 
-    showFormMsg("success", editingId ? "Producto actualizado correctamente." : "Producto agregado correctamente.");
+    let successMsg = editingId ? "Producto actualizado correctamente." : "Producto agregado correctamente.";
+    if (data.warnings && data.warnings.length) {
+      successMsg += " ⚠️ " + data.warnings.map(w => w.message || w).join(" ");
+    }
+    showFormMsg("success", successMsg);
     cancelEdit();
     await loadProducts();
   } catch (err) {
