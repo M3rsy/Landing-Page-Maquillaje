@@ -1,6 +1,14 @@
 // Load .env before any process.env consumer — must be the first import.
 require("./env");
 
+const { runHealthChecks } = require("./health-checks");
+try {
+  runHealthChecks();
+} catch (err) {
+  console.error("[startup] Falló la validación de persistencia:", err.message);
+  process.exit(1);
+}
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -105,7 +113,12 @@ app.use((err, req, res, next) => {
     return res.status(400).json({ error: "Error al procesar la subida de imagen" });
   }
 
-  if (err?.message === "Solo se permiten imágenes") {
+  if (
+    err?.message === "Solo se permiten imágenes" ||
+    err?.message === "Solo se permiten imágenes (jpg, png, gif, webp)" ||
+    err?.message === "No se permiten archivos SVG" ||
+    err?.message === "La imagen no es válida"
+  ) {
     return res.status(400).json({ error: err.message });
   }
 

@@ -2,7 +2,19 @@ const { DatabaseSync } = require("node:sqlite");
 const path = require("path");
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, "jrv.db");
-const db = new DatabaseSync(DB_PATH);
+let db;
+try {
+  db = new DatabaseSync(DB_PATH);
+} catch (err) {
+  if (err.message && err.message.includes("SQLITE_CANTOPEN")) {
+    throw new Error(
+      `No se puede abrir la base de datos en: ${DB_PATH}. Verificá que el directorio exista y tenga permisos de escritura.`
+    );
+  }
+  throw new Error(
+    `Error al inicializar la base de datos: ${err.message}. Ruta: ${DB_PATH}`
+  );
+}
 
 db.exec("PRAGMA journal_mode = WAL");
 
