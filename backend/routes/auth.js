@@ -20,6 +20,16 @@ const {
 
 const router = express.Router();
 
+// Máximo 5 cambios de contraseña por IP cada 15 minutos
+const passwordChangeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Demasiados intentos. Intenta de nuevo en 15 minutos." },
+  skipSuccessfulRequests: true,
+});
+
 // Máximo 10 intentos fallidos por IP cada 15 minutos
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -106,6 +116,51 @@ router.post("/logout", (req, res) => {
 
 router.get("/me", requireAuth, (req, res) => {
   res.json({ usuario: req.admin.usuario });
+});
+
+router.put("/password", requireAuth, passwordChangeLimiter, (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (
+    typeof currentPassword !== "string" ||
+    typeof newPassword !== "string" ||
+    !currentPassword ||
+    !newPassword
+  ) {
+    return res.status(400).json({ error: "Contraseña actual y nueva requeridas" });
+  }
+
+  if (currentPassword.length > 200 || newPassword.length > 200) {
+    return res.status(400).json({ error: "Credenciales inválidas" });
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({ error: "La contraseña nueva debe tener al menos 8 caracteres" });
+  }
+
+  if (newPassword === currentPassword) {
+    return res.status(400).json({ error: "La contraseña nueva no puede ser igual a la actual" });
+  }
+
+  const row = db.prepare("SELECT password_hash FROM admin_users WHERE id = ?").get(req.admin.id);
+  if (!row || !row.password_hash) {
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
+
+  const passwordOk = bcrypt.compareSync(currentPassword, row.password_hash);
+  if (!passwordOk) {
+    log.warn(
+      { event: "auth.password.change.failure", userId: req.admin.id, reason: "contraseña actual incorrecta" },
+      "Cambio de contraseña fallido: contraseña actual incorrecta"
+    );
+    return res.status(403).json({ error: "Contraseña actual incorrecta" });
+  }
+
+  const newHash = bcrypt.hashSync(newPassword, 12);
+  db.prepare("UPDATE admin_users SET password_hash = ?, token_version = token_version + 1 WHERE id = ?").run(newHash, req.admin.id);
+  log.info({ event: "auth.password.change", userId: req.admin.id }, "Contraseña actualizada");
+
+  res.json({ ok: true, message: "Contraseña actualizada. Iniciá sesión de nuevo." });
 });
 
 module.exports = router;

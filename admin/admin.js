@@ -278,6 +278,103 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   }
 });
 
+// --- Configuración: toggle card ---
+document.getElementById("settingsBtn").addEventListener("click", () => {
+  const card = document.getElementById("settingsCard");
+  card.hidden = !card.hidden;
+});
+
+// --- Configuración: cambiar contraseña ---
+document.getElementById("passwordForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById("pwdSubmitBtn");
+  btn.disabled = true;
+
+  const errorEl = document.getElementById("pwdError");
+  const successEl = document.getElementById("pwdSuccess");
+  errorEl.hidden = true;
+  successEl.hidden = true;
+
+  const currentPassword = document.getElementById("currentPassword").value;
+  const newPassword = document.getElementById("newPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    errorEl.textContent = "Todos los campos son obligatorios";
+    errorEl.hidden = false;
+    btn.disabled = false;
+    return;
+  }
+
+  if (newPassword.length < 8) {
+    errorEl.textContent = "La contraseña nueva debe tener al menos 8 caracteres";
+    errorEl.hidden = false;
+    btn.disabled = false;
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    errorEl.textContent = "Las contraseñas nuevas no coinciden";
+    errorEl.hidden = false;
+    btn.disabled = false;
+    return;
+  }
+
+  if (newPassword === currentPassword) {
+    errorEl.textContent = "La contraseña nueva no puede ser igual a la actual";
+    errorEl.hidden = false;
+    btn.disabled = false;
+    return;
+  }
+
+  try {
+    const res = await apiFetch("/api/auth/password", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    if (res.status === 401) {
+      redirectToLogin();
+      return;
+    }
+
+    if (res.status === 429) {
+      errorEl.textContent = "Demasiados intentos. Intenta de nuevo en 15 minutos.";
+      errorEl.hidden = false;
+      btn.disabled = false;
+      return;
+    }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Error al cambiar la contraseña");
+
+    successEl.textContent = "Contraseña actualizada. Redirigiendo al login…";
+    successEl.hidden = false;
+    setTimeout(() => redirectToLogin(), 2000);
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.hidden = false;
+    btn.disabled = false;
+  }
+});
+
+// --- Eye toggles ---
+document.querySelectorAll(".toggle-eye").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const targetId = btn.getAttribute("data-target");
+    const input = document.getElementById(targetId);
+    const eyeOpen = btn.querySelector(".eye-open");
+    const eyeClosed = btn.querySelector(".eye-closed");
+
+    const isHidden = input.type === "password";
+    input.type = isHidden ? "text" : "password";
+    eyeOpen.style.display = isHidden ? "none" : "";
+    eyeClosed.style.display = isHidden ? "" : "none";
+    btn.setAttribute("aria-label", isHidden ? "Ocultar contraseña" : "Mostrar contraseña");
+  });
+});
+
 // Cargar al iniciar
 (async () => {
   const usuario = await ensureSession();
