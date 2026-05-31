@@ -1,13 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { AUTH_COOKIE_NAME } = require("../authCookie");
-
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error(
-    "[authMiddleware] JWT_SECRET no está definido. " +
-    "Configura esta variable de entorno antes de arrancar el servidor."
-  );
-}
+const { JWT_SECRET } = require("../config/auth");
+const db = require("../database");
 
 function requireAuth(req, res, next) {
   const header = req.headers["authorization"];
@@ -21,10 +15,23 @@ function requireAuth(req, res, next) {
 
   try {
     req.admin = jwt.verify(token, JWT_SECRET);
-    next();
   } catch {
     return res.status(401).json({ error: "Token inválido o expirado" });
   }
+
+  // Check token version for revocation
+  if (req.admin && typeof req.admin.id === "number") {
+    const current = db.prepare("SELECT token_version FROM admin_users WHERE id = ?").get(req.admin.id);
+    if (current) {
+      const dbVer = current.token_version ?? 0;
+      const payloadVer = typeof req.admin.ver === "number" ? req.admin.ver : 0;
+      if (payloadVer !== dbVer) {
+        return res.status(401).json({ error: "Sesión revocada. Iniciá sesión de nuevo." });
+      }
+    }
+  }
+
+  next();
 }
 
 function getCookieValue(cookieHeader, name) {
