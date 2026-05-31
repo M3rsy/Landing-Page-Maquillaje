@@ -33,8 +33,10 @@ async function ensureSession() {
 }
 
 // --- Estado global ---
-let allProducts = [];
 let editingId = null;
+let currentPage = 1;
+const PAGE_LIMIT = 20;
+let currentQuery = "";
 
 // --- Helpers ---
 function formatPrice(n) {
@@ -51,12 +53,18 @@ function showFormMsg(type, msg) {
 }
 
 // --- Cargar productos ---
-async function loadProducts() {
+let lastTotal = 0;
+async function loadProducts(page = 1, limit = PAGE_LIMIT, q = "") {
   try {
-    const res = await apiFetch("/api/products/admin/list");
+    const url = `/api/products/admin/list?page=${page}&limit=${limit}&q=${encodeURIComponent(q)}`;
+    const res = await apiFetch(url);
     if (!res.ok) throw new Error("Error cargando productos");
-    allProducts = await res.json();
-    renderTable(allProducts);
+    const data = await res.json();
+    currentPage = data.page;
+    currentQuery = q;
+    lastTotal = data.total;
+    renderTable(data.data, data.total);
+    renderPagination(data);
   } catch (err) {
     document.getElementById("productsBody").innerHTML =
       `<tr><td colspan="9" class="empty-row error-row">Error: ${err.message}</td></tr>`;
@@ -64,9 +72,9 @@ async function loadProducts() {
 }
 
 // --- Renderizar tabla ---
-function renderTable(products) {
+function renderTable(products, total) {
   const tbody = document.getElementById("productsBody");
-  document.getElementById("productCount").textContent = products.length;
+  document.getElementById("productCount").textContent = total != null ? total : products.length;
 
   if (products.length === 0) {
     tbody.innerHTML = `<tr><td colspan="9" class="empty-row">No hay productos aún. ¡Agrega el primero!</td></tr>`;
@@ -95,13 +103,44 @@ function renderTable(products) {
   `).join("");
 }
 
-// --- Búsqueda ---
+// --- Paginación ---
+function renderPagination({ total, page, limit, totalPages }) {
+  const container = document.getElementById("pagination");
+  container.innerHTML = "";
+
+  if (totalPages <= 1) return;
+
+  const createBtn = (label, targetPage, disabled = false) => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.disabled = disabled;
+    if (!disabled) {
+      btn.addEventListener("click", () => loadProducts(targetPage, limit, currentQuery));
+    }
+    return btn;
+  };
+
+  container.appendChild(createBtn("Anterior", page - 1, page <= 1));
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    if (i === page) btn.classList.add("active");
+    btn.addEventListener("click", () => loadProducts(i, limit, currentQuery));
+    container.appendChild(btn);
+  }
+
+  container.appendChild(createBtn("Siguiente", page + 1, page >= totalPages));
+}
+
+// --- Búsqueda (debounce) ---
+let searchTimeout;
 document.getElementById("searchInput").addEventListener("input", (e) => {
-  const q = e.target.value.toLowerCase();
-  const filtered = allProducts.filter(p =>
-    p.titulo.toLowerCase().includes(q) || p.codigo.toLowerCase().includes(q)
-  );
-  renderTable(filtered);
+  const q = e.target.value.trim();
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    loadProducts(1, PAGE_LIMIT, q);
+  }, 300);
 });
 
 // --- Formulario: guardar ---
@@ -164,7 +203,7 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
     }
     showFormMsg("success", successMsg);
     cancelEdit();
-    await loadProducts();
+    await loadProducts(currentPage, PAGE_LIMIT, currentQuery);
   } catch (err) {
     showFormMsg("error", err.message);
   } finally {
@@ -173,27 +212,32 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
 });
 
 // --- Editar ---
-function startEdit(id) {
-  const p = allProducts.find(x => x.id === id);
-  if (!p) return;
+async function startEdit(id) {
+  try {
+    const res = await apiFetch(`/api/products/${id}`);
+    if (!res.ok) throw new Error("Producto no encontrado");
+    const p = await res.json();
 
-  editingId = id;
-  document.getElementById("formTitle").textContent = "Editar Producto";
-  document.getElementById("editId").value = id;
-  document.getElementById("codigo").value = p.codigo;
-  document.getElementById("titulo").value = p.titulo;
-  document.getElementById("descripcion").value = p.descripcion || "";
-  document.getElementById("precio").value = p.precio;
-  document.getElementById("costo").value = p.costo;
-  document.getElementById("precio_mayorista").value = p.precio_mayorista ?? "";
-  document.getElementById("categoria").value = p.categoria;
-  document.getElementById("marca").value = p.marca || "";
-  document.getElementById("disponible").checked = !!p.disponible;
-  document.getElementById("submitBtn").textContent = "Actualizar producto";
-  document.getElementById("cancelEditBtn").hidden = false;
-  showFormMsg(null, null);
+    editingId = id;
+    document.getElementById("formTitle").textContent = "Editar Producto";
+    document.getElementById("editId").value = id;
+    document.getElementById("codigo").value = p.codigo;
+    document.getElementById("titulo").value = p.titulo;
+    document.getElementById("descripcion").value = p.descripcion || "";
+    document.getElementById("precio").value = p.precio;
+    document.getElementById("costo").value = p.costo;
+    document.getElementById("precio_mayorista").value = p.precio_mayorista ?? "";
+    document.getElementById("categoria").value = p.categoria;
+    document.getElementById("marca").value = p.marca || "";
+    document.getElementById("disponible").checked = !!p.disponible;
+    document.getElementById("submitBtn").textContent = "Actualizar producto";
+    document.getElementById("cancelEditBtn").hidden = false;
+    showFormMsg(null, null);
 
-  document.querySelector(".form-section").scrollIntoView({ behavior: "smooth" });
+    document.querySelector(".form-section").scrollIntoView({ behavior: "smooth" });
+  } catch (err) {
+    alert(`Error: ${err.message}`);
+  }
 }
 
 function cancelEdit() {
@@ -218,7 +262,7 @@ async function deleteProduct(id, nombre) {
       const data = await res.json();
       throw new Error(data.error || "Error al eliminar");
     }
-    await loadProducts();
+await loadProducts(currentPage, PAGE_LIMIT, currentQuery);
   } catch (err) {
     alert(`Error: ${err.message}`);
   }
