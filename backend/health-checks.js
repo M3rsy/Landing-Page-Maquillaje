@@ -3,6 +3,20 @@ const path = require("path");
 const logger = require("./logger");
 
 /**
+ * Validates that required environment variables are set.
+ * Throws Error with Spanish-language message on failure.
+ */
+function validateEnv() {
+  const required = ["JWT_SECRET"];
+  const missing = required.filter((key) => !process.env[key]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Variables de entorno faltantes: ${missing.join(", ")}. Verificá tu archivo .env.`
+    );
+  }
+}
+
+/**
  * Validates persistence prerequisites before server startup.
  * Throws Error with Spanish-language message on failure.
  * @param {object} [options] - Override paths for testing
@@ -47,4 +61,4 @@ function runHealthChecks(options = {}) {
   logger.info("[health-checks] Validación de persistencia correcta");
 }
 
-module.exports = { runHealthChecks };
+module.exports = { runHealthChecks, validateEnv };

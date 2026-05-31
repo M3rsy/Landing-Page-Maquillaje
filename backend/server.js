@@ -2,7 +2,13 @@
 require("./env");
 
 const logger = require("./logger");
-const { runHealthChecks } = require("./health-checks");
+const { runHealthChecks, validateEnv } = require("./health-checks");
+try {
+  validateEnv();
+} catch (err) {
+  logger.fatal("[startup] Falló la validación de entorno: %s", err.message);
+  process.exit(1);
+}
 try {
   runHealthChecks();
 } catch (err) {
@@ -17,6 +23,7 @@ const multer = require("multer");
 const rateLimit = require("express-rate-limit");
 const pinoHttp = require("pino-http");
 const helmet = require("helmet");
+const compression = require("compression");
 
 const authRoutes = require("./routes/auth");
 const productRoutes = require("./routes/products");
@@ -97,6 +104,7 @@ if (rawOrigins) {
   corsOptions = { origin: false };
 }
 app.use(cors(corsOptions));
+app.use(compression());
 app.use(pinoHttp({ logger }));
 app.use(express.json({ limit: "250kb" }));
 app.use(express.urlencoded({ extended: true, limit: "250kb" }));
@@ -112,10 +120,10 @@ const apiLimiter = rateLimit({
 app.use("/api", apiLimiter);
 
 // Servir el sitio principal estático
-app.use(express.static(path.join(__dirname, "..")));
+app.use(express.static(path.join(__dirname, ".."), { maxAge: "7d" }));
 
-// Servir imágenes subidas
-app.use("/uploads", express.static(process.env.UPLOADS_DIR || path.join(__dirname, "uploads")));
+// Servir imágenes subidas — cache corta porque pueden cambiar
+app.use("/uploads", express.static(process.env.UPLOADS_DIR || path.join(__dirname, "uploads"), { maxAge: "1d" }));
 
 // Servir el panel de administración
 app.use("/admin", express.static(path.join(__dirname, "../admin")));
