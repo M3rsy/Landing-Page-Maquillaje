@@ -29,3 +29,5 @@ jobs:
 
       - name: Run smoke tests
         run: npm run test:smoke
+        env:
+          JWT_SECRET: ci-test-secret
