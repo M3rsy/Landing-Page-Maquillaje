@@ -89,6 +89,15 @@ const stmt = db.prepare(`
     imagen = excluded.imagen
 `);
 
+function estimateCost(p) {
+  const wholesale = parsePrice(p.wholesale);
+  const price = parsePrice(p.price);
+  // Estimated cost: wholesale × 1.20 markup, or price × 0.65 if wholesale unavailable.
+  // These are approximations — replace with actual purchase prices when known.
+  return wholesale > 0 ? Math.round(wholesale * 1.20 * 100) / 100
+                       : Math.round(price * 0.65 * 100) / 100;
+}
+
 function migrate() {
   let inserted = 0;
   let updated = 0;
@@ -101,7 +110,7 @@ function migrate() {
         p.name,
         p.description,
         parsePrice(p.price),
-        0,
+        estimateCost(p),
         parsePrice(p.wholesale),
         p.category,
         p.brand,

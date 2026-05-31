@@ -196,6 +196,16 @@ router.post("/", requireAuth, (req, res) => {
       payload.disponible === false || payload.disponible === "0" ? 0 : 1
     );
     const created = db.prepare("SELECT * FROM products WHERE id = ?").get(info.lastInsertRowid);
+    const warnings = [];
+    if (Number.isFinite(payload.costo) && Number.isFinite(payload.precio) && payload.costo >= payload.precio) {
+      warnings.push({
+        field: "costo",
+        message: `El costo (${payload.costo}) es mayor o igual al precio de venta (${payload.precio}). Verificá que sea correcto.`,
+      });
+    }
+    if (warnings.length) {
+      created.warnings = warnings;
+    }
     res.status(201).json(created);
   } catch (err) {
     if (err.message.includes("UNIQUE")) {
@@ -234,6 +244,16 @@ router.put("/:id", requireAuth, (req, res) => {
       req.params.id
     );
     const updated = db.prepare("SELECT * FROM products WHERE id = ?").get(req.params.id);
+    const warnings = [];
+    if (Number.isFinite(payload.costo) && Number.isFinite(payload.precio) && payload.costo >= payload.precio) {
+      warnings.push({
+        field: "costo",
+        message: `El costo (${payload.costo}) es mayor o igual al precio de venta (${payload.precio}). Verificá que sea correcto.`,
+      });
+    }
+    if (warnings.length) {
+      updated.warnings = warnings;
+    }
     res.json(updated);
   } catch (err) {
     if (err.message.includes("UNIQUE")) {
