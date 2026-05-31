@@ -2,6 +2,8 @@ const jwt = require("jsonwebtoken");
 const { AUTH_COOKIE_NAME } = require("../authCookie");
 const { JWT_SECRET } = require("../config/auth");
 const db = require("../database");
+const logger = require("../logger");
+const log = logger.child({ module: "authMiddleware" });
 
 function requireAuth(req, res, next) {
   const header = req.headers["authorization"];
@@ -10,12 +12,18 @@ function requireAuth(req, res, next) {
   const token = bearerToken || cookieToken;
 
   if (!token) {
+    log.warn({ event: "jwt.missing" }, "Token ausente");
     return res.status(401).json({ error: "No autorizado" });
   }
 
   try {
     req.admin = jwt.verify(token, JWT_SECRET);
-  } catch {
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      log.warn({ event: "jwt.invalid", reason: "expirado" }, "Token expirado");
+    } else {
+      log.warn({ event: "jwt.invalid", reason: "inválido" }, "Token inválido");
+    }
     return res.status(401).json({ error: "Token inválido o expirado" });
   }
 
@@ -26,6 +34,7 @@ function requireAuth(req, res, next) {
       const dbVer = current.token_version ?? 0;
       const payloadVer = typeof req.admin.ver === "number" ? req.admin.ver : 0;
       if (payloadVer !== dbVer) {
+        log.warn({ event: "jwt.revoked", userId: req.admin.id, tokenVersion: payloadVer }, "Token revocado por versión");
         return res.status(401).json({ error: "Sesión revocada. Iniciá sesión de nuevo." });
       }
     }

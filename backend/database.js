@@ -1,5 +1,6 @@
 const { DatabaseSync } = require("node:sqlite");
 const path = require("path");
+const logger = require("./logger");
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, "jrv.db");
 let db;
@@ -69,11 +70,7 @@ db.exec("UPDATE admin_users SET failed_attempts = COALESCE(failed_attempts, 0)")
 // Verificar que existe al menos un usuario admin
 const existing = db.prepare("SELECT id FROM admin_users WHERE usuario = ?").get("admin");
 if (!existing) {
-  console.warn("========================================================");
-  console.warn("  AVISO: No existe usuario admin en la base de datos.");
-  console.warn("  Ejecuta el script de setup para crear las credenciales:");
-  console.warn("    node backend/scripts/create-admin.js");
-  console.warn("========================================================");
+  logger.warn({ event: "admin.missing" }, "No existe usuario admin; ejecuta node backend/scripts/create-admin.js");
 }
 
 module.exports = db;

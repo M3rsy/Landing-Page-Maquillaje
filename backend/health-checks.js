@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const logger = require("./logger");
 
 /**
  * Validates persistence prerequisites before server startup.
@@ -43,7 +44,7 @@ function runHealthChecks(options = {}) {
     );
   }
 
-  console.log("[health-checks] Validación de persistencia correcta");
+  logger.info("[health-checks] Validación de persistencia correcta");
 }
 
 module.exports = { runHealthChecks };
