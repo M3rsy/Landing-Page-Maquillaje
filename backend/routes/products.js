@@ -146,6 +146,28 @@ function validateProductPayload(payload) {
   return null;
 }
 
+function escapeLikeWildcards(str) {
+  return String(str)
+    .replace(/\\/g, "\\\\")
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_");
+}
+
+function buildPaginationQuery(page, limit, q) {
+  const params = [];
+  let where = "";
+  if (q && q.trim()) {
+    const term = `%${escapeLikeWildcards(q.trim())}%`;
+    where = "WHERE titulo LIKE ? ESCAPE '\\' OR codigo LIKE ? ESCAPE '\\'";
+    params.push(term, term);
+  }
+
+  const countQuery = `SELECT COUNT(*) AS total FROM products ${where}`.trim();
+  const dataQuery = `SELECT * FROM products ${where} ORDER BY id DESC LIMIT ? OFFSET ?`.trim();
+
+  return { dataQuery, countQuery, params };
+}
+
 // GET /api/products — público
 router.get("/", (req, res) => {
   const rows = db.prepare(`
@@ -156,10 +178,34 @@ router.get("/", (req, res) => {
   res.json(rows);
 });
 
-// GET /api/products/admin — requiere JWT
+// GET /api/products/admin/list — requiere JWT
 router.get("/admin/list", requireAuth, (req, res) => {
-  const rows = db.prepare("SELECT * FROM products ORDER BY id DESC").all();
-  res.json(rows);
+  let page = parseInt(req.query.page, 10);
+  let limit = parseInt(req.query.limit, 10);
+  const q = req.query.q;
+
+  if (!Number.isFinite(page) || page < 1) page = 1;
+  if (!Number.isFinite(limit) || limit < 1) limit = 20;
+  if (limit > 100) limit = 100;
+
+  const offset = (page - 1) * limit;
+  const { dataQuery, countQuery, params } = buildPaginationQuery(page, limit, q);
+
+  const countRow = db.prepare(countQuery).get(...params);
+  const total = countRow ? countRow.total : 0;
+
+  const dataParams = [...params, limit, offset];
+  const rows = db.prepare(dataQuery).all(...dataParams);
+
+  log.info({ event: "product.list", page, limit, q: q || undefined, total });
+
+  res.json({
+    data: rows,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  });
 });
 
 // GET /api/products/:id — público

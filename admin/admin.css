@@ -458,6 +458,39 @@ tr:hover td { background: #fef7fa; }
 .btn-delete { background: #fdecea; color: #b71c1c; }
 .btn-edit:hover, .btn-delete:hover { opacity: .8; }
 
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .35rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+.pagination button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: .35rem .7rem;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.pagination button:hover:not(:disabled) {
+  background: #fef7fa;
+  border-color: var(--rose);
+}
+.pagination button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.pagination button.active {
+  background: var(--rose);
+  color: #fff;
+  border-color: var(--rose);
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .form-grid { grid-template-columns: 1fr; }
