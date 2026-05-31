@@ -10,6 +10,8 @@
     "start": "node --env-file-if-exists=.env backend/server.js",
     "dev": "node --env-file-if-exists=.env --watch backend/server.js",
     "seed:products": "node --env-file-if-exists=.env backend/scripts/migrate-products.js",
+    "seed:products:prune": "node backend/scripts/migrate-products.js --prune",
+    "seed:products:dry-run": "node backend/scripts/migrate-products.js --dry-run",
     "create-admin": "node --env-file-if-exists=.env backend/scripts/create-admin.js",
     "setup:tailwind": "powershell -ExecutionPolicy Bypass -File scripts/download-tailwind.ps1",
     "build:css": "powershell -ExecutionPolicy Bypass -File scripts/build-css.ps1",
