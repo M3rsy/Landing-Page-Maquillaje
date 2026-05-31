@@ -105,8 +105,8 @@ router.post("/revoke", requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-router.post("/logout", (req, res) => {
-  log.info({ event: "auth.logout" }, "Logout");
+router.post("/logout", requireAuth, (req, res) => {
+  log.info({ event: "auth.logout", userId: req.admin.id, usuario: req.admin.usuario }, "Logout");
   const clearCookieOptions = { ...getAuthCookieOptions() };
   delete clearCookieOptions.maxAge;
 
