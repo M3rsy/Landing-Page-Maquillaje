@@ -16,6 +16,7 @@ const path = require("path");
 const multer = require("multer");
 const rateLimit = require("express-rate-limit");
 const pinoHttp = require("pino-http");
+const helmet = require("helmet");
 
 const authRoutes = require("./routes/auth");
 const productRoutes = require("./routes/products");
@@ -24,6 +25,56 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
+
+const helmetConfig = {
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      objectSrc: ["'none'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      fontSrc: ["'self'", "data:"],
+      connectSrc: ["'self'"],
+      mediaSrc: ["'self'", "https:"],
+      ...(process.env.NODE_ENV === "production" && {
+        upgradeInsecureRequests: [],
+      }),
+    },
+  },
+  frameguard: { action: "deny" },
+  hsts: process.env.NODE_ENV === "production" ? { maxAge: 31536000, includeSubDomains: true } : false,
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  permissionsPolicy: {
+    features: {
+      camera: [],
+      microphone: [],
+      geolocation: [],
+    },
+  },
+};
+
+function httpsRedirect(req, res, next) {
+  if (req.secure || req.headers["x-forwarded-proto"] === "https") {
+    return next();
+  }
+  if (req.headers["x-forwarded-proto"] === "http") {
+    return res.redirect(301, `https://${req.headers.host}${req.originalUrl}`);
+  }
+  return next(); // no proxy header, assume direct HTTP (dev)
+}
+
+// Middleware order: helmet (security headers) → httpsRedirect → cors → pinoHttp → body parsers
+app.use(helmet(helmetConfig));
+app.use(httpsRedirect);
+app.use((req, res, next) => {
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
 
 // CORS: restringido a los orígenes definidos en CORS_ORIGIN (separados por coma).
 // Si CORS_ORIGIN no está configurado, origin:false bloquea cross-origin correctamente
@@ -49,27 +100,6 @@ app.use(cors(corsOptions));
 app.use(pinoHttp({ logger }));
 app.use(express.json({ limit: "250kb" }));
 app.use(express.urlencoded({ extended: true, limit: "250kb" }));
-
-app.use((req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  res.setHeader("Cross-Origin-Resource-Policy", "same-site");
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-  res.setHeader(
-    "Content-Security-Policy",
-    "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; " +
-      "script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; " +
-      "font-src 'self' data:; connect-src 'self'; media-src 'self' https:"
-  );
-
-  if (process.env.NODE_ENV === "production") {
-    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  }
-
-  next();
-});
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
