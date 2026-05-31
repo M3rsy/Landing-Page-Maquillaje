@@ -9,16 +9,14 @@ const {
   getAuthCookieOptions,
   getTokenTtlHours,
 } = require("../authCookie");
+const {
+  JWT_SECRET,
+  LOCKOUT_THRESHOLD,
+  LOCKOUT_DURATION_MS,
+  DUMMY_HASH,
+} = require("../config/auth");
 
 const router = express.Router();
-
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error(
-    "[auth] JWT_SECRET no está definido. " +
-    "Configura esta variable de entorno antes de arrancar el servidor."
-  );
-}
 
 // Máximo 10 intentos fallidos por IP cada 15 minutos
 const loginLimiter = rateLimit({
@@ -45,18 +43,46 @@ router.post("/login", loginLimiter, (req, res) => {
   }
 
   const user = db.prepare("SELECT * FROM admin_users WHERE usuario = ?").get(usuario);
-  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+
+  // Check lockout for existing users before credential verification
+  if (user && user.locked_until && new Date(user.locked_until) > new Date()) {
+    return res.status(429).json({ error: "Cuenta bloqueada. Intenta de nuevo en unos minutos." });
+  }
+
+  // Timing-safe: always run bcrypt.compareSync, even for non-existent users
+  const hashToCompare = user ? user.password_hash : DUMMY_HASH;
+  const passwordOk = bcrypt.compareSync(password, hashToCompare);
+
+  if (!user || !passwordOk) {
+    // If user exists, increment failed_attempts and maybe lock
+    if (user) {
+      const newAttempts = (user.failed_attempts || 0) + 1;
+      const lockUntil = newAttempts >= LOCKOUT_THRESHOLD ? new Date(Date.now() + LOCKOUT_DURATION_MS).toISOString() : null;
+      db.prepare("UPDATE admin_users SET failed_attempts = ?, locked_until = ? WHERE id = ?").run(newAttempts, lockUntil, user.id);
+    }
     return res.status(401).json({ error: "Credenciales incorrectas" });
   }
 
+  // Successful login: reset attempts, clear lockout, update last login
+  db.prepare("UPDATE admin_users SET failed_attempts = 0, locked_until = NULL, last_login_at = datetime('now') WHERE id = ?").run(user.id);
+
   const token = jwt.sign(
-    { id: user.id, usuario: user.usuario },
+    { id: user.id, usuario: user.usuario, ver: user.token_version ?? 0 },
     JWT_SECRET,
     { expiresIn: `${getTokenTtlHours()}h` }
   );
 
   res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
   res.json({ usuario: user.usuario });
+});
+
+router.post("/revoke", requireAuth, (req, res) => {
+  db.prepare("UPDATE admin_users SET token_version = token_version + 1 WHERE id = ?").run(req.admin.id);
+  // Clear the cookie
+  const clearOptions = { ...getAuthCookieOptions() };
+  delete clearOptions.maxAge;
+  res.clearCookie(AUTH_COOKIE_NAME, clearOptions);
+  res.json({ ok: true });
 });
 
 router.post("/logout", (req, res) => {
