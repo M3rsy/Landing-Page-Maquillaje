@@ -143,6 +143,18 @@ function validateProductPayload(payload) {
     return "Los campos exceden el largo permitido";
   }
 
+  // Sanitize string fields — strip HTML tags to prevent XSS
+  const stripHtml = (str) => typeof str === "string" ? str.replace(/<[^>]*>/g, "").trim() : str;
+  payload.codigo = stripHtml(payload.codigo);
+  payload.titulo = stripHtml(payload.titulo);
+  payload.descripcion = stripHtml(payload.descripcion || "");
+  payload.marca = stripHtml(payload.marca || "");
+  payload.categoria = stripHtml(payload.categoria);
+
+  if (!payload.codigo || !payload.titulo || !payload.categoria) {
+    return "Los campos no pueden estar vacíos após sanitizar";
+  }
+
   return null;
 }
 

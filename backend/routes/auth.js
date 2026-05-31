@@ -20,6 +20,13 @@ const {
 
 const router = express.Router();
 
+// Rate limit key: IP + username (prevents brute-force from different IPs)
+const loginKeyGenerator = (req) => {
+  const ip = req.ip || req.connection.remoteAddress || "unknown";
+  const usuario = typeof req.body?.usuario === "string" ? req.body.usuario : "";
+  return `${ip}_${usuario}`;
+};
+
 // Máximo 5 cambios de contraseña por IP cada 15 minutos
 const passwordChangeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -30,12 +37,13 @@ const passwordChangeLimiter = rateLimit({
   skipSuccessfulRequests: true,
 });
 
-// Máximo 10 intentos fallidos por IP cada 15 minutos
+// Máximo 10 intentos fallidos por IP+usuario cada 15 minutos
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: loginKeyGenerator,
   message: { error: "Demasiados intentos de inicio de sesión. Intenta de nuevo en 15 minutos." },
   skipSuccessfulRequests: true,
 });

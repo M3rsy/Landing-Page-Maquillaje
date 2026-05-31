@@ -375,6 +375,21 @@ document.querySelectorAll(".toggle-eye").forEach((btn) => {
   });
 });
 
+// --- Auto-logout por inactividad (15 minutos) ---
+const INACTIVITY_MS = 15 * 60 * 1000;
+let inactivityTimer;
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    alert("Sesión expirada por inactividad. Iniciá sesión de nuevo.");
+    redirectToLogin();
+  }, INACTIVITY_MS);
+}
+["mousemove", "keydown", "click", "scroll", "touchstart"].forEach((evt) =>
+  document.addEventListener(evt, resetInactivityTimer, { passive: true })
+);
+resetInactivityTimer();
+
 // Cargar al iniciar
 (async () => {
   const usuario = await ensureSession();
