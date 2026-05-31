@@ -5,6 +5,8 @@ const crypto = require("crypto");
 const fs = require("fs");
 const db = require("../database");
 const requireAuth = require("../middleware/authMiddleware");
+const logger = require("../logger");
+const log = logger.child({ module: "products" });
 
 const router = express.Router();
 
@@ -206,9 +208,11 @@ router.post("/", requireAuth, (req, res) => {
     if (warnings.length) {
       created.warnings = warnings;
     }
+    log.info({ event: "product.created", productId: created.id, codigo: created.codigo }, "Producto creado");
     res.status(201).json(created);
   } catch (err) {
     if (err.message.includes("UNIQUE")) {
+      log.warn({ event: "product.duplicate", codigo: payload.codigo }, "Producto duplicado");
       return res.status(409).json({ error: "Ya existe un producto con ese código" });
     }
     throw err;
@@ -254,9 +258,11 @@ router.put("/:id", requireAuth, (req, res) => {
     if (warnings.length) {
       updated.warnings = warnings;
     }
+    log.info({ event: "product.updated", productId: updated.id, codigo: updated.codigo }, "Producto actualizado");
     res.json(updated);
   } catch (err) {
     if (err.message.includes("UNIQUE")) {
+      log.warn({ event: "product.duplicate", codigo: payload.codigo }, "Producto duplicado");
       return res.status(409).json({ error: "Ya existe un producto con ese código" });
     }
     throw err;
@@ -269,6 +275,7 @@ router.delete("/:id", requireAuth, (req, res) => {
   if (!existing) return res.status(404).json({ error: "Producto no encontrado" });
   db.prepare("DELETE FROM products WHERE id = ?").run(req.params.id);
   deleteImageFile(existing.imagen);
+  log.info({ event: "product.deleted", productId: existing.id, codigo: existing.codigo }, "Producto eliminado");
   res.json({ ok: true });
 });
 
@@ -293,6 +300,7 @@ router.post("/:id/image", requireAuth, upload.single("imagen"), (req, res, next)
 
   const imagenUrl = `/uploads/${req.file.filename}`;
   db.prepare("UPDATE products SET imagen = ? WHERE id = ?").run(imagenUrl, req.params.id);
+  log.info({ event: "product.image.uploaded", productId: req.params.id, filename: req.file.filename }, "Imagen subida");
   res.json({ imagen: imagenUrl });
 });
 

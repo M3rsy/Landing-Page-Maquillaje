@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
 const db = require("../database");
 const requireAuth = require("../middleware/authMiddleware");
+const logger = require("../logger");
+const log = logger.child({ module: "auth" });
 const {
   AUTH_COOKIE_NAME,
   getAuthCookieOptions,
@@ -46,6 +48,7 @@ router.post("/login", loginLimiter, (req, res) => {
 
   // Check lockout for existing users before credential verification
   if (user && user.locked_until && new Date(user.locked_until) > new Date()) {
+    log.warn({ event: "login.lockout", usuario: user.usuario, reason: "cuenta ya bloqueada" }, "Cuenta bloqueada");
     return res.status(429).json({ error: "Cuenta bloqueada. Intenta de nuevo en unos minutos." });
   }
 
@@ -54,17 +57,23 @@ router.post("/login", loginLimiter, (req, res) => {
   const passwordOk = bcrypt.compareSync(password, hashToCompare);
 
   if (!user || !passwordOk) {
-    // If user exists, increment failed_attempts and maybe lock
-    if (user) {
+    if (!user) {
+      log.warn({ event: "login.failure", usuario, reason: "usuario no encontrado" }, "Login fallido: usuario no encontrado");
+    } else {
       const newAttempts = (user.failed_attempts || 0) + 1;
       const lockUntil = newAttempts >= LOCKOUT_THRESHOLD ? new Date(Date.now() + LOCKOUT_DURATION_MS).toISOString() : null;
       db.prepare("UPDATE admin_users SET failed_attempts = ?, locked_until = ? WHERE id = ?").run(newAttempts, lockUntil, user.id);
+      if (lockUntil) {
+        log.warn({ event: "login.lockout", usuario: user.usuario, failedAttempts: newAttempts, lockoutDurationMs: LOCKOUT_DURATION_MS }, "Cuenta bloqueada");
+      }
+      log.warn({ event: "login.failure", usuario: user.usuario, reason: "contraseña incorrecta" }, "Login fallido: contraseña incorrecta");
     }
     return res.status(401).json({ error: "Credenciales incorrectas" });
   }
 
   // Successful login: reset attempts, clear lockout, update last login
   db.prepare("UPDATE admin_users SET failed_attempts = 0, locked_until = NULL, last_login_at = datetime('now') WHERE id = ?").run(user.id);
+  log.info({ event: "login.success", usuario: user.usuario, userId: user.id }, "Login exitoso");
 
   const token = jwt.sign(
     { id: user.id, usuario: user.usuario, ver: user.token_version ?? 0 },
@@ -78,6 +87,7 @@ router.post("/login", loginLimiter, (req, res) => {
 
 router.post("/revoke", requireAuth, (req, res) => {
   db.prepare("UPDATE admin_users SET token_version = token_version + 1 WHERE id = ?").run(req.admin.id);
+  log.info({ event: "token.revoke", userId: req.admin.id, usuario: req.admin.usuario }, "Token revocado");
   // Clear the cookie
   const clearOptions = { ...getAuthCookieOptions() };
   delete clearOptions.maxAge;
@@ -86,6 +96,7 @@ router.post("/revoke", requireAuth, (req, res) => {
 });
 
 router.post("/logout", (req, res) => {
+  log.info({ event: "auth.logout" }, "Logout");
   const clearCookieOptions = { ...getAuthCookieOptions() };
   delete clearCookieOptions.maxAge;
 

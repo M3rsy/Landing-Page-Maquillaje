@@ -1,11 +1,12 @@
 // Load .env before any process.env consumer — must be the first import.
 require("./env");
 
+const logger = require("./logger");
 const { runHealthChecks } = require("./health-checks");
 try {
   runHealthChecks();
 } catch (err) {
-  console.error("[startup] Falló la validación de persistencia:", err.message);
+  logger.fatal("[startup] Falló la validación de persistencia: %s", err.message);
   process.exit(1);
 }
 
@@ -14,6 +15,7 @@ const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
 const rateLimit = require("express-rate-limit");
+const pinoHttp = require("pino-http");
 
 const authRoutes = require("./routes/auth");
 const productRoutes = require("./routes/products");
@@ -44,6 +46,7 @@ if (rawOrigins) {
   corsOptions = { origin: false };
 }
 app.use(cors(corsOptions));
+app.use(pinoHttp({ logger }));
 app.use(express.json({ limit: "250kb" }));
 app.use(express.urlencoded({ extended: true, limit: "250kb" }));
 
@@ -126,12 +129,13 @@ app.use((err, req, res, next) => {
     return res.status(413).json({ error: "El payload excede el tamaño permitido" });
   }
 
-  console.error("[server:error]", err);
+  const reqLog = req.log || logger;
+  reqLog.error({ err, event: "server.error" }, "Error interno del servidor");
   return res.status(500).json({ error: "Error interno del servidor" });
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor JRV corriendo en http://localhost:${PORT}`);
-  console.log(`Panel admin: http://localhost:${PORT}/admin/`);
-  console.log(`API productos: http://localhost:${PORT}/api/products`);
+  logger.info({ port: PORT, event: "server.started" }, "Servidor JRV corriendo en http://localhost:%d", PORT);
+  logger.info({ port: PORT, event: "admin.available" }, "Panel admin: http://localhost:%d/admin/", PORT);
+  logger.info({ port: PORT, event: "api.available" }, "API productos: http://localhost:%d/api/products", PORT);
 });
