@@ -35,11 +35,11 @@ const helmetConfig = {
       formAction: ["'self'"],
       frameAncestors: ["'none'"],
       objectSrc: ["'none'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://static.cloudflareinsights.com"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
       fontSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "https://static.cloudflareinsights.com"],
       mediaSrc: ["'self'", "https:"],
       ...(process.env.NODE_ENV === "production" && {
         upgradeInsecureRequests: [],
