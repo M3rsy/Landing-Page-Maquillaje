@@ -18,7 +18,7 @@ async function apiFetch(url, options = {}) {
 
 async function ensureSession() {
   try {
-    const res = await apiFetch("/api/auth/me");
+    const res = await apiFetch("/api/v1/auth/me");
     if (!res.ok) {
       redirectToLogin();
       return null;
@@ -56,7 +56,7 @@ function showFormMsg(type, msg) {
 let lastTotal = 0;
 async function loadProducts(page = 1, limit = PAGE_LIMIT, q = "") {
   try {
-    const url = `/api/products/admin/list?page=${page}&limit=${limit}&q=${encodeURIComponent(q)}`;
+    const url = `/api/v1/products/admin/list?page=${page}&limit=${limit}&q=${encodeURIComponent(q)}`;
     const res = await apiFetch(url);
     if (!res.ok) throw new Error("Error cargando productos");
     const data = await res.json();
@@ -171,7 +171,7 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
   };
 
   try {
-    const url = editingId ? `/api/products/${editingId}` : "/api/products";
+    const url = editingId ? `/api/v1/products/${editingId}` : "/api/v1/products";
     const method = editingId ? "PUT" : "POST";
 
     const res = await fetch(url, {
@@ -194,7 +194,7 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
     if (imgFile) {
       const fd = new FormData();
       fd.append("imagen", imgFile);
-      const imgRes = await apiFetch(`/api/products/${data.id}/image`, {
+      const imgRes = await apiFetch(`/api/v1/products/${data.id}/image`, {
         method: "POST",
         body: fd,
       });
@@ -221,7 +221,7 @@ document.getElementById("productForm").addEventListener("submit", async (e) => {
 // --- Editar ---
 async function startEdit(id) {
   try {
-    const res = await apiFetch(`/api/products/${id}`);
+    const res = await apiFetch(`/api/v1/products/${id}`);
     if (!res.ok) throw new Error("Producto no encontrado");
     const p = await res.json();
 
@@ -262,7 +262,7 @@ document.getElementById("cancelEditBtn").addEventListener("click", cancelEdit);
 async function deleteProduct(id, nombre) {
   if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
   try {
-    const res = await apiFetch(`/api/products/${id}`, {
+    const res = await apiFetch(`/api/v1/products/${id}`, {
       method: "DELETE",
     });
     if (!res.ok) {
@@ -277,7 +277,7 @@ await loadProducts(currentPage, PAGE_LIMIT, currentQuery);
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
   try {
-    await apiFetch("/api/auth/logout", { method: "POST" });
+    await apiFetch("/api/v1/auth/logout", { method: "POST" });
   } catch {
     // Si falla el logout en el backend, igual redirigimos para cortar sesión en UI.
   } finally {
@@ -335,7 +335,7 @@ document.getElementById("passwordForm").addEventListener("submit", async (e) => 
   }
 
   try {
-    const res = await apiFetch("/api/auth/password", {
+    const res = await apiFetch("/api/v1/auth/password", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ currentPassword, newPassword }),

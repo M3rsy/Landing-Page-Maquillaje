@@ -27,7 +27,7 @@ const mockProducts = [
 ];
 
 async function mockProductsApi(page, { status = 200, body = mockProducts } = {}) {
-  await page.route("**/api/products", async (route) => {
+  await page.route("**/api/v1/products", async (route) => {
     await route.fulfill({
       status,
       contentType: "application/json",
