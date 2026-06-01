@@ -26,8 +26,18 @@ const mockProducts = [
   },
 ];
 
-async function mockProductsApi(page, { status = 200, body = mockProducts } = {}) {
+async function mockProductsApi(page, { status = 200, body = { data: mockProducts, total: 2, page: 1, limit: 50, totalPages: 1 } } = {}) {
   await page.route("**/api/v1/products", async (route) => {
+    await route.fulfill({
+      status,
+      contentType: "application/json",
+      body: JSON.stringify(body),
+    });
+  });
+}
+
+async function mockFiltersApi(page, { status = 200, body = { categories: ["Rostro", "Labios"], brands: ["Marca A", "Marca B"], featured: mockProducts } } = {}) {
+  await page.route("**/api/v1/products/filters", async (route) => {
     await route.fulfill({
       status,
       contentType: "application/json",
@@ -39,6 +49,7 @@ async function mockProductsApi(page, { status = 200, body = mockProducts } = {})
 test.describe("public catalog smoke", () => {
   test("happy path: homepage renders product grid and summary", async ({ page }) => {
     await mockProductsApi(page);
+    await mockFiltersApi(page);
     await page.goto("/");
 
     const catalog = page.locator("#catalogo");
@@ -55,6 +66,7 @@ test.describe("public catalog smoke", () => {
 
   test("API failure path: empty state appears without crashing", async ({ page }) => {
     await mockProductsApi(page, { status: 500, body: { error: "forced failure" } });
+    await mockFiltersApi(page, { status: 500, body: { error: "forced failure" } });
 
     await page.goto("/");
 
@@ -75,6 +87,7 @@ test.describe("public catalog smoke", () => {
 
   test("wholesale path: only product with wholesale price shows wholesale tag", async ({ page }) => {
     await mockProductsApi(page);
+    await mockFiltersApi(page);
 
     await page.goto("/");
 
