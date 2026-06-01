@@ -450,6 +450,8 @@ const FALLBACK_PRODUCTS = [
 // Starts as an empty array; downstream consumers (buildFilters, renderProducts,
 // etc.) remain unchanged because they all read this variable by reference.
 let products = [];
+let productCache = [];
+let featuredCache = [];
 
 const state = {
   search: "",
@@ -534,7 +536,22 @@ const whatsappLink = (message) =>
 const productWhatsappLink = (productName) =>
   whatsappLink(`Hola, quiero más información sobre este producto: ${productName}`);
 
-const getProductByCode = (code) => products.find((product) => product.code === code);
+const getProductByCode = (code) => productCache.find((product) => product.code === code) || null;
+
+async function resolveProductByCode(code) {
+  let product = getProductByCode(code);
+  if (product) return product;
+  try {
+    const response = await fetch(`/api/v1/products/${encodeURIComponent(code)}`);
+    if (!response.ok) return null;
+    product = normalizeApiProduct(await response.json());
+    productCache.push(product);
+    return product;
+  } catch (error) {
+    console.warn(`[catalog] Failed to resolve product ${code}:`, error.message);
+    return null;
+  }
+}
 
 const getOptimizedProductImage = (product) => `assets/optimized/productos/${product.code}.webp`;
 
@@ -543,7 +560,7 @@ const getProductAnchorId = (product) => `producto-${normalize(product.code).repl
 function getProductFromHash() {
   const hash = globalThis.location.hash.replace("#", "");
   if (!hash) return null;
-  return products.find((product) => getProductAnchorId(product) === hash) || null;
+  return productCache.find((product) => getProductAnchorId(product) === hash) || null;
 }
 
 const isProductHot = (product) => product.hot === true || FEATURED_CODES.includes(product.code);
@@ -723,23 +740,50 @@ function closePromo() {
   closeDialog(promoPopup);
 }
 
-function buildFilters() {
-  const brands = ["Todas", ...new Set(products.map((product) => product.brand))];
-  const categories = ["Todos", ...new Set(products.map((product) => product.category))];
+async function buildFilters() {
+  const params = new URLSearchParams();
+  FEATURED_CODES.forEach((code) => params.append("featured", code));
 
-  brandFilter.innerHTML = brands
-    .map((brand) => `<option value="${escapeHtml(brand)}">${escapeHtml(brand)}</option>`)
-    .join("");
+  try {
+    const response = await fetch(`/api/v1/products/filters?${params}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const { categories, brands, featured } = await response.json();
 
-  categoryFilters.innerHTML = categories
-    .map(
-      (category) => `
-        <button class="filter-button" type="button" data-category="${escapeHtml(category)}">
-          ${escapeHtml(displayCategory(category))}
-        </button>
-      `
-    )
-    .join("");
+    brandFilter.innerHTML = ["Todas", ...brands]
+      .map((brand) => `<option value="${escapeHtml(brand)}">${escapeHtml(brand)}</option>`)
+      .join("");
+
+    categoryFilters.innerHTML = ["Todos", ...categories]
+      .map(
+        (category) => `
+          <button class="filter-button" type="button" data-category="${escapeHtml(category)}">
+            ${escapeHtml(displayCategory(category))}
+          </button>
+        `
+      )
+      .join("");
+
+    featuredCache = (featured || []).map(normalizeApiProduct);
+    productCache = [...products, ...featuredCache];
+  } catch (error) {
+    console.warn("[catalog] filters API unavailable:", error.message);
+    const brands = ["Todas", ...new Set(products.map((product) => product.brand))];
+    const categories = ["Todos", ...new Set(products.map((product) => product.category))];
+
+    brandFilter.innerHTML = brands
+      .map((brand) => `<option value="${escapeHtml(brand)}">${escapeHtml(brand)}</option>`)
+      .join("");
+
+    categoryFilters.innerHTML = categories
+      .map(
+        (category) => `
+          <button class="filter-button" type="button" data-category="${escapeHtml(category)}">
+            ${escapeHtml(displayCategory(category))}
+          </button>
+        `
+      )
+      .join("");
+  }
 }
 
 function sortProducts(productList) {
@@ -1351,8 +1395,15 @@ function resetCatalogFilters() {
   if (sortFilter) sortFilter.value = "featured";
 }
 
-function revealProductFromHash() {
-  const product = getProductFromHash();
+async function revealProductFromHash() {
+  const hash = globalThis.location.hash.replace("#", "");
+  if (!hash) return;
+
+  let product = productCache.find((p) => getProductAnchorId(p) === hash) || null;
+  if (!product && hash.startsWith("producto-")) {
+    const code = hash.slice("producto-".length).toUpperCase();
+    product = await resolveProductByCode(code);
+  }
   if (!product) return;
 
   resetCatalogFilters();
@@ -1597,10 +1648,12 @@ function normalizeApiProduct(row) {
  */
 async function fetchProducts() {
   try {
-    const response = await fetch("/api/v1/products");
+    const response = await fetch("/api/v1/products?page=1&limit=50");
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const rows = await response.json();
-    return rows.map(normalizeApiProduct);
+    const envelope = await response.json();
+    const normalized = (envelope.data || []).map(normalizeApiProduct);
+    productCache = [...productCache, ...normalized];
+    return normalized;
   } catch (error) {
     console.warn("[catalog] API unavailable, showing empty state:", error.message);
     return [];
@@ -1616,10 +1669,10 @@ async function initApp() {
 
   products = await fetchProducts();
 
-  buildFilters();
+  await buildFilters();
   renderFeaturedProducts();
   renderProducts();
-  revealProductFromHash();
+  await revealProductFromHash();
 
   globalThis.setTimeout(() => {
     if (shouldShowPromoPopup()) {
