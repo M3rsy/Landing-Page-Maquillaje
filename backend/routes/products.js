@@ -6,6 +6,7 @@ const fs = require("fs");
 const db = require("../database");
 const requireAuth = require("../middleware/authMiddleware");
 const logger = require("../logger");
+const { processUploadedImage } = require("../imageProcessor");
 const log = logger.child({ module: "products" });
 
 const router = express.Router();
@@ -338,28 +339,39 @@ router.delete("/:id", requireAuth, (req, res) => {
 });
 
 // POST /api/products/:id/image — requiere JWT
-router.post("/:id/image", requireAuth, upload.single("imagen"), (req, res, next) => {
-  const existing = db.prepare("SELECT * FROM products WHERE id = ?").get(req.params.id);
-  if (!existing) return res.status(404).json({ error: "Producto no encontrado" });
-  if (!req.file) return res.status(400).json({ error: "No se recibió imagen" });
-
+router.post("/:id/image", requireAuth, upload.single("imagen"), async (req, res, next) => {
   try {
-    validateImageFile(req.file.path, req.file.mimetype);
+    const existing = db.prepare("SELECT * FROM products WHERE id = ?").get(req.params.id);
+    if (!existing) return res.status(404).json({ error: "Producto no encontrado" });
+    if (!req.file) return res.status(400).json({ error: "No se recibió imagen" });
+
+    try {
+      validateImageFile(req.file.path, req.file.mimetype);
+    } catch (err) {
+      // Remove the invalid file from disk
+      try { fs.unlinkSync(req.file.path); } catch (_) { /* ignore */ }
+      return res.status(400).json({ error: err.message });
+    }
+
+    try {
+      await processUploadedImage(req.file.path);
+    } catch (err) {
+      deleteImageFile(req.file.path);
+      return res.status(400).json({ error: err.message });
+    }
+
+    // Delete previous image only after successful processing
+    if (existing.imagen) {
+      deleteImageFile(existing.imagen);
+    }
+
+    const imagenUrl = `/uploads/${req.file.filename}`;
+    db.prepare("UPDATE products SET imagen = ? WHERE id = ?").run(imagenUrl, req.params.id);
+    log.info({ event: "product.image.uploaded", productId: req.params.id, filename: req.file.filename }, "Imagen subida");
+    res.json({ imagen: imagenUrl });
   } catch (err) {
-    // Remove the invalid file from disk
-    try { fs.unlinkSync(req.file.path); } catch (_) { /* ignore */ }
-    return res.status(400).json({ error: err.message });
+    next(err);
   }
-
-  // Delete previous image if it exists
-  if (existing.imagen) {
-    deleteImageFile(existing.imagen);
-  }
-
-  const imagenUrl = `/uploads/${req.file.filename}`;
-  db.prepare("UPDATE products SET imagen = ? WHERE id = ?").run(imagenUrl, req.params.id);
-  log.info({ event: "product.image.uploaded", productId: req.params.id, filename: req.file.filename }, "Imagen subida");
-  res.json({ imagen: imagenUrl });
 });
 
 module.exports = router;
