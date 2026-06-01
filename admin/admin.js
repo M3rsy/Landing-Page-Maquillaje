@@ -85,7 +85,7 @@ function renderTable(products, total) {
     <tr>
       <td class="col-img">
         ${p.imagen
-          ? `<img src="${p.imagen}" alt="${p.titulo}" class="thumb" />`
+          ? `<img src="${p.imagen}" alt="${p.titulo}" class="thumb" loading="lazy" decoding="async" />`
           : `<span class="no-img">Sin imagen</span>`}
       </td>
       <td class="col-code"><code>${p.codigo}</code></td>
