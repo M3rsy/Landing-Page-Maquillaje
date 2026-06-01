@@ -96,11 +96,18 @@ function renderTable(products, total) {
       <td class="col-costo">${formatPrice(p.costo)}</td>
       <td>${p.disponible ? '<span class="badge-ok">Disponible</span>' : '<span class="badge-off">Agotado</span>'}</td>
       <td class="col-actions">
-        <button class="btn-edit" onclick="startEdit(${p.id})">Editar</button>
-        <button class="btn-delete" onclick="deleteProduct(${p.id}, '${p.titulo.replace(/'/g, "\\'")}')">Eliminar</button>
+        <button class="btn-edit" data-edit-id="${p.id}">Editar</button>
+        <button class="btn-delete" data-delete-id="${p.id}" data-delete-name="${p.titulo.replace(/"/g, "&quot;")}">Eliminar</button>
       </td>
     </tr>
   `).join("");
+
+  tbody.querySelectorAll(".btn-edit").forEach((btn) => {
+    btn.addEventListener("click", () => startEdit(parseInt(btn.dataset.editId, 10)));
+  });
+  tbody.querySelectorAll(".btn-delete").forEach((btn) => {
+    btn.addEventListener("click", () => deleteProduct(parseInt(btn.dataset.deleteId, 10), btn.dataset.deleteName));
+  });
 }
 
 // --- Paginación ---
