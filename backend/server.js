@@ -129,8 +129,10 @@ app.use("/uploads", express.static(process.env.UPLOADS_DIR || path.join(__dirnam
 // Servir el panel de administración
 app.use("/admin", express.static(path.join(__dirname, "../admin")));
 
-// API routes
+// API routes (v1 + legacy unversioned)
+app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/v1/products", productRoutes);
 app.use("/api/products", productRoutes);
 
 app.get("/health", (req, res) => {
@@ -161,6 +163,7 @@ app.use((err, req, res, next) => {
     err?.message === "No se permiten archivos SVG" ||
     err?.message === "La imagen no es válida" ||
     (err?.message && err.message.startsWith("La imagen excede las dimensiones máximas permitidas")) ||
+    (err?.message && err.message.startsWith("La imagen excede el tamaño máximo permitido para")) ||
     (err?.message && err.message.startsWith("Error al procesar la imagen"))
   ) {
     return res.status(400).json({ error: err.message });
