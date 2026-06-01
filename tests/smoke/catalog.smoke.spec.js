@@ -27,6 +27,15 @@ const mockProducts = [
 ];
 
 async function mockProductsApi(page, { status = 200, body = { data: mockProducts, total: 2, page: 1, limit: 50, totalPages: 1 } } = {}) {
+  // Match the paginated endpoint (with or without query params) but NOT /filters or /admin
+  await page.route("**/api/v1/products?*", async (route) => {
+    await route.fulfill({
+      status,
+      contentType: "application/json",
+      body: JSON.stringify(body),
+    });
+  });
+  // Also match bare path (no query string fallback)
   await page.route("**/api/v1/products", async (route) => {
     await route.fulfill({
       status,
@@ -37,7 +46,7 @@ async function mockProductsApi(page, { status = 200, body = { data: mockProducts
 }
 
 async function mockFiltersApi(page, { status = 200, body = { categories: ["Rostro", "Labios"], brands: ["Marca A", "Marca B"], featured: mockProducts } } = {}) {
-  await page.route("**/api/v1/products/filters", async (route) => {
+  await page.route("**/api/v1/products/filters**", async (route) => {
     await route.fulfill({
       status,
       contentType: "application/json",
