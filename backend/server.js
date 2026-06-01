@@ -158,7 +158,9 @@ app.use((err, req, res, next) => {
     err?.message === "Solo se permiten imágenes" ||
     err?.message === "Solo se permiten imágenes (jpg, png, gif, webp)" ||
     err?.message === "No se permiten archivos SVG" ||
-    err?.message === "La imagen no es válida"
+    err?.message === "La imagen no es válida" ||
+    (err?.message && err.message.startsWith("La imagen excede las dimensiones máximas permitidas")) ||
+    (err?.message && err.message.startsWith("Error al procesar la imagen"))
   ) {
     return res.status(400).json({ error: err.message });
   }
