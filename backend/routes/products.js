@@ -191,12 +191,32 @@ function buildPaginationQuery(page, limit, q) {
 
 // GET /api/products — público
 router.get("/", (req, res) => {
-  const rows = db.prepare(`
-    SELECT id, codigo, titulo, descripcion, precio, precio_mayorista, categoria, marca, imagen, disponible, creado_en
-    FROM products
-    ORDER BY id DESC
-  `).all();
-  res.json(rows);
+  let page = parseInt(req.query.page, 10);
+  let limit = parseInt(req.query.limit, 10);
+  const q = req.query.q;
+
+  if (!Number.isFinite(page) || page < 1) page = 1;
+  if (!Number.isFinite(limit) || limit < 1) limit = 50;
+  if (limit > 100) limit = 100;
+
+  const offset = (page - 1) * limit;
+  const { dataQuery, countQuery, params } = buildPaginationQuery(page, limit, q);
+
+  const countRow = db.prepare(countQuery).get(...params);
+  const total = countRow ? countRow.total : 0;
+
+  const dataParams = [...params, limit, offset];
+  const rows = db.prepare(dataQuery).all(...dataParams);
+
+  log.info({ event: "product.list", page, limit, q: q || undefined, total });
+
+  res.json({
+    data: rows,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  });
 });
 
 // GET /api/products/admin/list — requiere JWT
@@ -261,13 +281,46 @@ router.get("/admin/audit", requireAuth, (req, res) => {
   res.json({ negativeMargin, missingImage, missingWholesalePrice, outOfStock });
 });
 
+// GET /api/products/filters — público
+router.get("/filters", (req, res) => {
+  const categories = db.prepare(
+    "SELECT DISTINCT categoria FROM products ORDER BY categoria"
+  ).all().map(r => r.categoria);
+
+  const brands = db.prepare(
+    "SELECT DISTINCT marca FROM products WHERE marca IS NOT NULL AND marca != '' ORDER BY marca"
+  ).all().map(r => r.marca);
+
+  let featured = [];
+  const featuredCodes = req.query.featured;
+  if (featuredCodes) {
+    const codes = Array.isArray(featuredCodes) ? featuredCodes : [featuredCodes];
+    const placeholders = codes.map(() => "?").join(",");
+    featured = db.prepare(`
+      SELECT id, codigo, titulo, descripcion, precio, precio_mayorista, categoria, marca, imagen, disponible, creado_en
+      FROM products WHERE codigo IN (${placeholders})
+    `).all(...codes);
+  }
+
+  log.info({ event: "product.filters", categories: categories.length, brands: brands.length, featured: featured.length });
+
+  res.json({ categories, brands, featured });
+});
+
 // GET /api/products/:id — público
 router.get("/:id", (req, res) => {
-  const row = db.prepare(`
+  let row = db.prepare(`
     SELECT id, codigo, titulo, descripcion, precio, precio_mayorista, categoria, marca, imagen, disponible, creado_en
     FROM products
     WHERE id = ?
   `).get(req.params.id);
+  if (!row && Number.isNaN(Number(req.params.id))) {
+    row = db.prepare(`
+      SELECT id, codigo, titulo, descripcion, precio, precio_mayorista, categoria, marca, imagen, disponible, creado_en
+      FROM products
+      WHERE codigo = ?
+    `).get(req.params.id);
+  }
   if (!row) return res.status(404).json({ error: "Producto no encontrado" });
   res.json(row);
 });
