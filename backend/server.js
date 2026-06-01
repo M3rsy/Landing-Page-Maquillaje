@@ -121,7 +121,14 @@ const apiLimiter = rateLimit({
 app.use("/api", apiLimiter);
 
 // Servir el sitio principal estático
-app.use(express.static(path.join(__dirname, ".."), { maxAge: "7d" }));
+app.use(express.static(path.join(__dirname, ".."), {
+  setHeaders(res, path) {
+    if (path.endsWith(".html")) {
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    }
+  },
+  maxAge: "7d",
+}));
 
 // Servir imágenes subidas — cache corta porque pueden cambiar
 app.use("/uploads", express.static(process.env.UPLOADS_DIR || path.join(__dirname, "uploads"), { maxAge: "1d" }));
