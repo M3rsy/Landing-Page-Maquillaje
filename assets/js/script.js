@@ -1597,7 +1597,7 @@ function normalizeApiProduct(row) {
  */
 async function fetchProducts() {
   try {
-    const response = await fetch("/api/products");
+    const response = await fetch("/api/v1/products");
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const rows = await response.json();
     return rows.map(normalizeApiProduct);

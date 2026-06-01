@@ -19,6 +19,14 @@ const ALLOWED_EXTENSIONS = {
   ".webp": "image/webp",
 };
 
+const UPLOAD_SIZE_LIMITS = {
+  ".jpg": 5 * 1024 * 1024,
+  ".jpeg": 5 * 1024 * 1024,
+  ".png": 5 * 1024 * 1024,
+  ".webp": 3 * 1024 * 1024,
+  ".gif": 2 * 1024 * 1024,
+};
+
 const MAGIC_BYTES = {
   "image/jpeg": [0xff, 0xd8, 0xff],
   "image/png": [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
@@ -221,6 +229,38 @@ router.get("/admin/list", requireAuth, (req, res) => {
   });
 });
 
+// GET /api/products/admin/audit — requiere JWT
+router.get("/admin/audit", requireAuth, (req, res) => {
+  const negativeMargin = db.prepare(
+    `SELECT id, codigo, titulo, costo, precio FROM products WHERE costo >= precio`
+  ).all();
+
+  const missingImage = db.prepare(
+    `SELECT id, codigo, titulo FROM products WHERE imagen IS NULL OR imagen = ''`
+  ).all();
+
+  const missingWholesalePrice = db.prepare(
+    `SELECT id, codigo, titulo FROM products WHERE precio_mayorista IS NULL`
+  ).all();
+
+  const outOfStock = db.prepare(
+    `SELECT id, codigo, titulo, disponible FROM products WHERE disponible = 0`
+  ).all();
+
+  log.info(
+    {
+      event: "product.audit",
+      countNegativeMargin: negativeMargin.length,
+      countMissingImage: missingImage.length,
+      countMissingWholesalePrice: missingWholesalePrice.length,
+      countOutOfStock: outOfStock.length,
+    },
+    "Audit de calidad ejecutado"
+  );
+
+  res.json({ negativeMargin, missingImage, missingWholesalePrice, outOfStock });
+});
+
 // GET /api/products/:id — público
 router.get("/:id", (req, res) => {
   const row = db.prepare(`
@@ -344,6 +384,13 @@ router.post("/:id/image", requireAuth, upload.single("imagen"), async (req, res,
     const existing = db.prepare("SELECT * FROM products WHERE id = ?").get(req.params.id);
     if (!existing) return res.status(404).json({ error: "Producto no encontrado" });
     if (!req.file) return res.status(400).json({ error: "No se recibió imagen" });
+
+    const ext = normalizeExtension(path.extname(req.file.originalname).toLowerCase());
+    const maxSize = UPLOAD_SIZE_LIMITS[ext];
+    if (req.file.size > maxSize) {
+      try { fs.unlinkSync(req.file.path); } catch (_) { /* ignore */ }
+      return res.status(400).json({ error: `La imagen excede el tamaño máximo permitido para ${ext} (${maxSize / 1024 / 1024}MB)` });
+    }
 
     try {
       validateImageFile(req.file.path, req.file.mimetype);
